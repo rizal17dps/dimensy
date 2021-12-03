@@ -1,0 +1,17 @@
+{
+    "code":1,
+    "data": [{
+        "name": "keyla",
+        "qty": "90"
+    },{
+        "name": "stamp",
+        "qty": "29"
+    },{
+        "name": "sign",
+        "qty": "46"
+    },{
+        "name": "otp",
+        "qty": "67"
+    }],
+    "message":"Success get quota"
+}

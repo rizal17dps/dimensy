@@ -37,9 +37,10 @@
     <script src="{{ asset('js/api-swagger/swagger-ui-standalone-preset.js') }}" charset="UTF-8"> </script>
     <script>
     window.onload = function() {
-      // Begin Swagger UI call region
+      // https://petstore.swagger.io/v2/swagger.json
+      // Begin Swagger UI call region {{ asset('json/test-doc.json') }}
       const ui = SwaggerUIBundle({
-        url: "https://petstore.swagger.io/v2/swagger.json",
+        url: "{{ asset('json/dimensy.json') }}",
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
