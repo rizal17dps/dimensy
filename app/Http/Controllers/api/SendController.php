@@ -9,15 +9,17 @@ use App\Models\User;
 use App\Models\ListSigner;
 use App\Services\CekCredential;
 use App\Services\Utils;
+use App\Services\SignService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SendController extends Controller
 {
     //
-    public function __construct(CekCredential $cekCredential, Utils $utils){
+    public function __construct(CekCredential $cekCredential, Utils $utils, SignService $sign){
         $this->cekCredential = $cekCredential;
         $this->utils = $utils;
+        $this->sign = $sign;
     }
 
     public function getDocument(Request $request, $id) {
@@ -62,10 +64,20 @@ class SendController extends Controller
             }
 
             if(!$email){
-                return response(['code' => 98, 'message' => 'Email']);
+                return response(['code' => 98, 'message' => 'Email Required']);
             }
 
-            $request->validate([
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Token Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+
+                $request->validate([
                     'content' => 'required|array',
                     'content.filename' => 'required',
                     'content.base64Doc' => 'required',
@@ -75,16 +87,10 @@ class SendController extends Controller
                     'content.signer.upperRightX' => 'required',
                     'content.signer.upperRightY' => 'required',
                     'content.signer.page' => 'required|numeric',
-                    'content.signer.certificateLevel' => 'required',
                     'content.signer.location' => 'string|regex:/^[a-zA-Z]+$/u',
                     'content.signer.reason' => 'string|max:255',
-            ]);
+                ]);            
 
-            $cekToken = $this->cekCredential->cekToken($header);
-            if(!$cekToken){
-                DB::rollBack();
-                return response(['code' => 98, 'message' => 'Token Mismatch']);
-            } else {
                 $user = User::where('email', $email)->where('is_active', 'true')->first();
                 if($user){
                     if($user->company_id == $cekToken){                        
@@ -120,13 +126,16 @@ class SendController extends Controller
                             if($sign->save()){
                                 $signer = new ListSigner();
                                 $signer->users_id = $user->id;
-                                $signer->step = 1;
-                                $signer->lower_left_x = $request->input('content.signer.lower_left_x');
-                                $signer->lower_left_y = $request->input('content.signer.lower_left_y');
-                                $signer->upper_right_x = $request->input('content.signer.upper_right_x');
-                                $signer->upper_right_y = $request->input('content.signer.upper_right_y');
-                                $signer->page = $request->input('content.signer.page');
                                 $signer->dokumen_id = $sign->id;
+                                $signer->step = 1;
+                                $signer->lower_left_x = $request->input('content.signer.lowerLeftX');
+                                $signer->lower_left_y = $request->input('content.signer.lowerLeftY');
+                                $signer->upper_right_x = $request->input('content.signer.upperRightX');
+                                $signer->upper_right_y = $request->input('content.signer.upperRightY');
+                                $signer->page = $request->input('content.signer.page');
+                                $signer->page = $request->input('content.signer.page');
+                                $signer->reason = $request->input('content.signer.reason');
+                                $signer->location = $request->input('content.signer.location');
                                 if($signer->save()){
                                     DB::commit();
                                     return response(['code' => 0, 'dataId' => $sign->id, 'message' => 'Success']);
@@ -147,5 +156,82 @@ class SendController extends Controller
             DB::rollBack();
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }        
+    }
+
+    public function signing(Request $request) {
+        DB::beginTransaction();
+        try{
+            $header = $request->header('api-key');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Token Mismatch']);
+            } else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $request->validate([
+                    'id' => 'required'
+                ]);
+
+                $doks = Sign::find((int)$request->input('id'));
+                if($doks){
+                    $listSigner = ListSigner::where('dokumen_id', (int)$request->input('id'))->where('users_id', $cekEmail)->where('step', $doks->step)->first();
+                    if($listSigner){
+                        $params = [
+                            "param" => [
+                                "systemId" => env('SYSTEMID'),
+                                "email" => $email,
+                                "payload"=> [
+                                    "filename" => ''.$doks->realname.'',
+                                    "base64Document" => ''.base64_encode(Storage::disk('minio')->get($doks->user->company_id .'/dok/' . $doks->users_id . '/' . $doks->name)).'',
+                                    "signer"=>[
+                                        [
+                                            "isVisualSign"=> "YES",
+                                            "lowerLeftX"=> ''.$listSigner->lower_left_x.'',
+                                            "lowerLeftY"=> ''.$listSigner->lower_left_y.'',
+                                            "upperRightX"=> ''.$listSigner->upper_right_x.'',
+                                            "upperRightY"=> ''.$listSigner->upper_right_y.'',
+                                            "page"=> ''.$listSigner->page.'',
+                                            "certificateLevel"=> "NOT_CERTIFIED",
+                                            "varLocation"=> ''.$listSigner->location.'',
+                                            "varReason"=> ''.$listSigner->reason.''
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ];
+
+                        $signing = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocument/v1', $params);
+                        if($signing['resultCode'] == 0){
+                            DB::commit();
+                            return response(['code' => 0, 'data' => $params, 'message' => 'Success']);
+                        } else {
+                            DB::rollBack();
+                            return response(['code' => 96, 'message' => $signing['resultDesc']]);
+                        }
+                        
+                    } else {
+                        DB::rollBack();
+                        return response(['code' => 97, 'message' => 'Signer not found']);
+                    }                    
+                }
+            }
+            
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
     }
 }
