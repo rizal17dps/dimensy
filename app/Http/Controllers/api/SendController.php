@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Sign;
 use App\Models\User;
 use App\Models\ListSigner;
+use App\Models\dokSign;
 use App\Services\CekCredential;
 use App\Services\Utils;
 use App\Services\SignService;
@@ -164,9 +165,9 @@ class SendController extends Controller
             $header = $request->header('api_key');
             $email = $request->header('email');
 
-            if(!$header){
-                return response(['code' => 98, 'message' => 'Api Key Required']);
-            }
+            // if(!$header){
+            //     return response(['code' => 98, 'message' => 'Api Key Required']);
+            // }
 
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
@@ -221,8 +222,17 @@ class SendController extends Controller
                                     "orderId" => ''.$signing['data']['orderId'].'',
                                 ]
                             ];
+
+                            $dokSign = dokSign::firstWhere('dokumen_id', $request->input('id'));
+                            if(!$dokSign){
+                                $dokSign = new dokSign();
+                            }                    
+                            $dokSign->dokumen_id = $request->input('id');
+                            $dokSign->orderId = $signing['data']['orderId'];
+                            $dokSign->save();
+
                             DB::commit();
-                            return response(['code' => 0, 'data' => $params, 'message' => 'Success']);
+                            return response(['code' => 0, 'orderId' => $dokSign->orderId, 'message' => 'Success']);
                         } else {
                             DB::rollBack();
                             return response(['code' => 96, 'message' => $signing['resultDesc']]);
