@@ -60,9 +60,9 @@ class SendController extends Controller
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
-            // if(!$header){
-            //     return response(['code' => 98, 'message' => 'Api Key Required']);
-            // }
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
 
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
@@ -72,7 +72,7 @@ class SendController extends Controller
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
                 DB::rollBack();
-                return response(['code' => 98, 'message' => 'Token Mismatch']);
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             }  else if(!$cekEmail){
                 DB::rollBack();
                 return response(['code' => 98, 'message' => 'Email Not Found']);
@@ -165,9 +165,9 @@ class SendController extends Controller
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
-            // if(!$header){
-            //     return response(['code' => 98, 'message' => 'Api Key Required']);
-            // }
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
 
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
@@ -177,7 +177,7 @@ class SendController extends Controller
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
                 DB::rollBack();
-                return response(['code' => 98, 'message' => 'Token Mismatch']);
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             } else if(!$cekEmail){
                 DB::rollBack();
                 return response(['code' => 98, 'message' => 'Email Not Found']);
