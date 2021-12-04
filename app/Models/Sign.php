@@ -17,6 +17,10 @@ class Sign extends Model
         return $this->belongsTo('App\Models\User', 'users_id')->withTrashed();
     }
 
+    protected $hidden = [
+        'name',
+    ];
+
     /**
      * Get the Status that owns the Notes.
      */
