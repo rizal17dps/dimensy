@@ -60,9 +60,9 @@ class SendController extends Controller
             $header = $request->header('api_key');
             $email = $request->header('email');
 
-            if(!$header){
-                return response(['code' => 98, 'message' => 'Api Key Required']);
-            }
+            // if(!$header){
+            //     return response(['code' => 98, 'message' => 'Api Key Required']);
+            // }
 
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
