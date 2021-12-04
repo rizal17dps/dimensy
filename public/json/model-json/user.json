@@ -1,5 +1,7 @@
 {
     "code":1,
-    "data": {"nama":"Nurul Rizal"},
+    "data": {
+        "nama":"Nurul Rizal"
+    },
     "message":"Success get user"
 }
