@@ -56,7 +56,7 @@ class SendController extends Controller
     public function sendDocument(Request $request) {
         DB::beginTransaction();
         try{
-            $header = $request->header('api-key');
+            $header = $request->header('api_key');
             $email = $request->header('email');
 
             if(!$header){
@@ -161,7 +161,7 @@ class SendController extends Controller
     public function signing(Request $request) {
         DB::beginTransaction();
         try{
-            $header = $request->header('api-key');
+            $header = $request->header('api_key');
             $email = $request->header('email');
 
             if(!$header){
