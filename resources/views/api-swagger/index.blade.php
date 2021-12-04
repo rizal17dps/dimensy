@@ -1,41 +1,39 @@
 <!-- HTML for static distribution bundle build -->
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>Swagger UI</title>
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/api-swagger/swagger-ui.css') }}" />
-    <link rel="icon" type="image/png" href="{{ asset('img/api-swagger/favicon-32x32.png') }}" sizes="32x32" />
-    <link rel="icon" type="image/png" href="{{ asset('img/api-swagger/favicon-16x16.png') }}" sizes="16x16" />
-    <style>
-      html
-      {
-        box-sizing: border-box;
-        overflow: -moz-scrollbars-vertical;
-        overflow-y: scroll;
-      }
 
-      *,
-      *:before,
-      *:after
-      {
-        box-sizing: inherit;
-      }
+<head>
+  <meta charset="UTF-8">
+  <title>dimensy API</title>
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/api-swagger/swagger-ui.css') }}" />
+  <link rel="icon" type="image/png" href="image/icon.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="image/icon.png" sizes="16x16" />
+  <style>
+    html {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
 
-      body
-      {
-        margin:0;
-        background: #fafafa;
-      }
-    </style>
-  </head>
+    *,
+    *:before,
+    *:after {
+      box-sizing: inherit;
+    }
 
-  <body>
-    <div id="swagger-ui"></div>
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
+  </style>
+</head>
 
-    <script src="{{ asset('js/api-swagger/swagger-ui-bundle.js') }}" charset="UTF-8"> </script>
-    <script src="{{ asset('js/api-swagger/swagger-ui-standalone-preset.js') }}" charset="UTF-8"> </script>
-    <script>
+<body>
+  <div id="swagger-ui"></div>
+
+  <script src="{{ asset('js/api-swagger/swagger-ui-bundle.js') }}" charset="UTF-8"> </script>
+  <script src="{{ asset('js/api-swagger/swagger-ui-standalone-preset.js') }}" charset="UTF-8"> </script>
+  <script>
     window.onload = function() {
       // https://petstore.swagger.io/v2/swagger.json
       // Begin Swagger UI call region {{ asset('json/test-doc.json') }}
@@ -57,5 +55,6 @@
       window.ui = ui;
     };
   </script>
-  </body>
+</body>
+
 </html>
