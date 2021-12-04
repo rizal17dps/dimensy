@@ -143,57 +143,50 @@
             {
                 "tags":["Sandbox"],
                 "summary":"Send Document",
-                "description": "Sending document to sand",
-                "consumes":["multipart/form-data"],
+                "description": "Sending document to sandbox",
+                "consumes":["application/json"],
                 "produces":["application/json"],
                 "parameters":[
                     {
-                        "name":"api_key",
-                        "in":"formData",
+                        "name":"Content-Type",
+                        "in":"header",
+                        "description":"application/json",
+                        "required":true,
+                        "schema": {  
+                            "type" : "string"
+                        }
+                    },
+                    {
+                        "name":"apiKey",
+                        "in":"header",
                         "description":"API Key from dashboard",
                         "required":true,
-                        "type":"string"
+                        "schema": {  
+                            "type" : "string"
+                        }
                     },
                     {
-                        "name":"username",
-                        "in":"formData",
-                        "description":"Username from dashboard",
+                        "name":"email",
+                        "in":"header",
+                        "description":"Email User",
                         "required":true,
-                        "type":"string"
+                        "schema": {  
+                            "type" : "string"
+                        }
                     },
                     {
-                        "name":"password",
-                        "in":"formData",
-                        "description":"Password from dashboard",
+                        "name":"body",
+                        "in":"body",
+                        "description":"API Key from dashboard",
                         "required":true,
-                        "type":"string"
+                        "schema": { "$ref": "#/definitions/Document" }
                     }
                 ],
-                "requestBody": {
-                    "content": {
-                      "application/x-www-form-urlencoded": {
-                        "schema": {
-                          "type": "object",
-                          "properties": {
-                            "name": { 
-                              "description": "Updated name of the pet",
-                              "type": "string"
-                            },
-                            "status": {
-                              "description": "Updated status of the pet",
-                              "type": "string"
-                            }
-                          },
-                          "required": ["status"] 
-                        }
-                    }
-                    }
-                },
                 "responses":{
                     "200":{
                         "description":"successful operation",
                         "schema":{
-                            "$ref":"#/definitions/Quota"
+                            "$ref": "#/definitions/ApiResponse"
                         }
                     }
                 }
@@ -293,6 +286,21 @@
         }
     },
     "components": {
+        "examples": {
+            "VehicleStoreEx1": {
+                "summary": "VehicleStoreEx1",
+                "value": {
+                    "name": "vehicle 1"
+                }
+            },
+            "VehicleStoreEx2": {
+                "summary": "VehicleStoreEx2",
+                "value": {
+                    "name": "vehicle 1",
+                    "model": "Tesla"
+                }
+            }
+        },
         "schemas": {
             "GeneralError": {
                 "type": "object",
@@ -396,7 +404,7 @@
             "type": "object",
             "properties": {
                 "code": { "type": "integer", "format": "int32" },
-                "type": { "type": "string" },
+                "dataId": { "type": "integer", "format" :"int32" },
                 "message": { "type": "string" }
             }
         },
@@ -542,6 +550,54 @@
                 }
             },
             "xml": { "name": "Temp" }
+        },
+        "Document" : {
+            "type" : "object",
+            "properties" : {
+                "content" : {
+                    "type" : "object",
+                    "properties" : {
+                        "filename" : {
+                            "type" : "string"
+                        },
+                        "base64doc" : {
+                            "type" : "string"
+                        },
+                        "signer" : {
+                                "$ref" : "#/definitions/Signer"
+                        }
+                    }
+                }
+            }
+        },
+        "Signer" : {
+            "type" : "object",
+            "properties" : {
+                "lowerLeftX" : {
+                    "type" : "string"
+                },
+                "lowerLeftY" : {
+                    "type" : "string"
+                },
+                "upperRightX" : {
+                    "type" : "string"
+                },
+                "upperRightY" : {
+                    "type" : "string"
+                },
+                "page" : {
+                    "type" : "string"
+                },
+                "location" : {
+                    "type" : "string"
+                },
+                "certificateLevel" : {
+                    "type" : "string"
+                },
+                "reason" : {
+                    "type" : "string"
+                }
+            }
         }
     }
 }
