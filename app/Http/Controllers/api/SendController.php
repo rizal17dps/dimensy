@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\api;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -215,6 +215,12 @@ class SendController extends Controller
 
                         $signing = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocument/v1', $params);
                         if($signing['resultCode'] == 0){
+                            $params = [
+                                "param" => [
+                                    "systemId" => env('SYSTEMID'),
+                                    "orderId" => ''.$signing['data']['orderId'].'',
+                                ]
+                            ];
                             DB::commit();
                             return response(['code' => 0, 'data' => $params, 'message' => 'Success']);
                         } else {
