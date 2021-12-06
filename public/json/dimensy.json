@@ -2,13 +2,6 @@
     "swagger":"2.0",
     "info":{
             "title": "Dimensy API",
-            "description": "Dimensy is a Digital Document Authorization Platform that can be accessed from our website. or through API.",
-            "termsOfService": "http://dimensy.id/terms/",
-            "contact": [{
-              "name": "API",
-              "url": "http://www.dimensy.id/support",
-              "email": "support@dimensy.id"
-            }],
             "version": "0.1"
     },
     "servers": [
@@ -25,15 +18,15 @@
                 "8443",
                 "443"
               ],
-              "default": "8443"
+              "default": "443"
             },
             "basePath": {
-              "default": "v2"
+              "default": "v1"
             }
           }
         },
         {
-            "url": "https://sandbox.dimensy.id",
+            "url": "https://api-sandbox.dimensy.id",
             "description": "The Sandbox API server",
             "variables": {
               "username": {
@@ -45,117 +38,26 @@
                   "8443",
                   "443"
                 ],
-                "default": "8443"
+                "default": "443"
               },
               "basePath": {
-                "default": "v2"
+                "default": "v1"
               }
             }
           }
       ],
-    "tags":[
-        {
-            "name":"Sandbox",
-            "description":"Send document in sandbox dimensy",
-            "externalDocs":{
-                "description":"Find out more",
-                "url":""
-            }
-        },
-        {
-            "name":"Information",
-            "description":"Check Information"
-        },
-        {
-            "name":"User",
-            "description":"Operations about user",
-            "externalDocs":{
-                "description":"Find out more about our store",
-                "url":"http://swagger.io"
-            }
-        }],
     "schemes":["https","http"],
     "paths":
     {
-        "/info/token": 
-        {
-            "get": 
-            {
-                "tags":["Information"],
-                "description": "Returns the token of a certain user",
-                "responses":{
-                    "200":{
-                        "description":"successful operation",
-                        "schema":{
-                            "$ref":"#/definitions/Token"
-                        }
-                        
-                    },
-                    "400":{
-                        "description":"unsuccessful",
-                        "schema":{
-                            "$ref":"#/definitions/Token"
-                        }
-                        
-                    }
-                }
-            }
-        },
-        "/info/{companyId}/quota": 
-        {
-            "get": 
-            {
-                "tags":["Information"],
-                "summary":"checking quota",
-                "description": "Returns the quota of one company",
-                "consumes":["multipart/form-data"],
-                "produces":["application/json"],
-                "parameters":[
-                    {
-                        "name":"companyId",
-                        "in":"path",
-                        "description":"Company ID",
-                        "required":true,
-                        "type":"integer",
-                        "format":"int64"
-                    },
-                    {
-                        "name":"additionalMetadata",
-                        "in":"formData",
-                        "description":"Additional data to pass to server",
-                        "required":false,
-                        "type":"string"
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description":"successful operation",
-                        "schema":{
-                            "$ref":"#/definitions/Quota"
-                        }
-                    }
-                }
-            }
-        },
         "/sendDocument": 
         {
             "post": 
             {
-                "tags":["Sandbox"],
                 "summary":"Send Document",
-                "description": "Sending document to sandbox",
+                "description": "Sending document",
                 "consumes":["application/json"],
                 "produces":["application/json"],
                 "parameters":[
-                    {
-                        "name":"Content-Type",
-                        "in":"header",
-                        "description":"application/json",
-                        "required":true,
-                        "schema": {  
-                            "type" : "string"
-                        }
-                    },
                     {
                         "name":"apiKey",
                         "in":"header",
@@ -177,7 +79,7 @@
                     {
                         "name":"body",
                         "in":"body",
-                        "description":"API Key from dashboard",
+                        "description":"File Information",
                         "required":true,
                         "schema": { "$ref": "#/definitions/Document" }
                     }
@@ -188,100 +90,79 @@
                         "schema":{
                             "$ref": "#/definitions/ApiResponse"
                         }
-                    }
-                }
-            }
-        },
-        "/users": 
-        {
-            "get": 
-            {
-                "tags":["User"],
-                "description": "Returns all users from the system that the user has access to",
-                "responses": 
-                {
-                    "200": 
-                    {          
-                        "description": "Received users information",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/User"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/users/getUser": 
-        {
-            "get": 
-            {
-                "tags":["User"],
-                "description": "Returns a user from the requested name that the user has access to",
-                "responses": 
-                {
-                    "200": 
-                    {          
-                        "description": "A User.",
+                    },
+                    "400":{
+                        "description":"unsuccessful operation",
                         "schema":{
-                            "$ref":"#/definitions/User"
+                            "$ref": "#/definitions/ApiResponseFail"
                         }
                     }
                 }
             }
         },
-        "/pet/{petId}/uploadImage":
+        "/signing": 
         {
-            "post":
+            "post": 
             {
-                "tags":["User"],
-                "summary":"uploads an image",
-                "description":"",
-                "operationId":"uploadFile",
-                "consumes":["multipart/form-data"],
+                "summary":"Sign Document",
+                "description": "Signing document",
+                "consumes":["application/json"],
                 "produces":["application/json"],
                 "parameters":[
                     {
-                        "name":"petId",
-                        "in":"path",
-                        "description":"ID of pet to update",
+                        "name":"apiKey",
+                        "in":"header",
+                        "description":"API Key from dashboard",
                         "required":true,
-                        "type":"integer",
-                        "format":"int64"
+                        "schema": {  
+                            "type" : "string"
+                        }
                     },
                     {
-                        "name":"additionalMetadata",
-                        "in":"formData",
-                        "description":"Additional data to pass to server",
-                        "required":false,
-                        "type":"string"
+                        "name":"email",
+                        "in":"header",
+                        "description":"Email User",
+                        "required":true,
+                        "schema": {  
+                            "type" : "string"
+                        },
+                        "examples" : {
+                            "email1" : {
+                                "value" : "example@email.com",
+                                "summary" : "Sample e-mail format"
+                            }
+                        }
                     },
                     {
-                        "name":"file",
-                        "in":"formData",
-                        "description":"file to upload",
-                        "required":false,
-                        "type":"file"
+                        "name":"body",
+                        "in":"body",
+                        "description":"User ID",
+                        "required":true,
+                        "schema": { 
+                            "type" : "object",
+                            "properties" : {
+                                "id" : {
+                                    "type" : "string",
+                                    "example" : "1"
+                                }
+                            }
+                         }
                     }
                 ],
                 "responses":{
                     "200":{
                         "description":"successful operation",
                         "schema":{
-                            "$ref":"#/definitions/ApiResponse"
+                            "$ref": "#/definitions/ApiResponse"
+                        }
+                    },
+                    "400":{
+                        "description":"unsuccessful operation",
+                        "schema":{
+                            "$ref": "#/definitions/ApiResponseFail"
                         }
                     }
-                },
-                "security":[
-                    {
-                        "petstore_auth":["write:pets","read:pets"]
-                    }
-                ]
+                }
             }
         }
     },
@@ -384,18 +265,6 @@
                 "type": "apiKey",
                 "name": "api_key",
                 "in": "header"
-            },
-            "petstore_auth": {
-                "type": "oauth2",
-                "flows": {
-                    "implicit": {
-                        "authorizationUrl": "http://example.org/api/oauth/dialog",
-                        "scopes": {
-                            "write:pets": "modify pets in your account",
-                            "read:pets": "read your pets"
-                        }
-                    }
-                }
             }
         }
     },
@@ -403,9 +272,17 @@
         "ApiResponse": {
             "type": "object",
             "properties": {
-                "code": { "type": "integer", "format": "int32" },
+                "code": { "type": "integer", "format": "int32", "example" : 200 },
                 "dataId": { "type": "integer", "format" :"int32" },
-                "message": { "type": "string" }
+                "message": { "type": "string", "example" : "Process Successful" }
+            }
+        },
+        "ApiResponseFail": {
+            "type": "object",
+            "properties": {
+                "code": { "type": "integer", "format": "int32", "example" : 400 },
+                "dataId": { "type": "integer", "format" :"int32" },
+                "message": { "type": "string", "example" : "Process Unuccessful" }
             }
         },
         "Category": {
@@ -476,7 +353,7 @@
                 "firstName": { "type": "string" },
                 "lastName": { "type": "string" },
                 "email": { "type": "string" },
-                "password": { "type": "string" },
+                "password": { "type": "string", "format" : "password" },
                 "phone": { "type": "string" },
                 "userStatus": {
                     "type": "integer",
