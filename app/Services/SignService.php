@@ -15,7 +15,7 @@ class SignService
 
     public function __construct(Client $client)
     {
-        $this->url = env('API_PERURI'); //'https://apgdev.peruri.co.id:9044/gateway/';
+        $this->url = 'https://apgdev.peruri.co.id:9044/gateway/'; //'https://apgdev.peruri.co.id:9044/gateway/';
         $this->http = $client;
     }
 
@@ -27,13 +27,13 @@ class SignService
             if ($token != null) {
                 $head = [
                     'content-type' => 'application/json',
-                    'x-Gateway-APIKey' => env('APIKey_PERURI'),
+                    'x-Gateway-APIKey' => '5bc817a4-daeb-4775-b836-7554b4beb840',
                     'Authorization' => 'Bearer ' . $token,
                 ];
             } else {
                 $head = [
                     'content-type' => 'application/json',
-                    'x-Gateway-APIKey' => env('APIKey_PERURI'),
+                    'x-Gateway-APIKey' => '5bc817a4-daeb-4775-b836-7554b4beb840',
                 ];
             }
 

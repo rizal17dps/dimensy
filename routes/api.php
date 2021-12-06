@@ -23,6 +23,8 @@ Route::post('/login', '\App\Http\Controllers\Api\AuthController@login');
 Route::get('/v1/checkinfo/token', '\App\Http\Controllers\Api\AuthController@login');
 
 //SingleDocument
-Route::get('/getDocument/{id}', '\App\Http\Controllers\Api\SendController@getDocument');
+Route::get('/getDocument', '\App\Http\Controllers\Api\SendController@getDocument');
 Route::post('/sendDocument', '\App\Http\Controllers\Api\SendController@sendDocument');
 Route::post('/signing', '\App\Http\Controllers\Api\SendController@signing');
+Route::post('/getOtp', '\App\Http\Controllers\Api\SendController@getOtp');
+Route::post('/download', '\App\Http\Controllers\Api\SendController@download');
