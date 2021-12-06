@@ -2,11 +2,6 @@
     "swagger":"2.0",
     "info":{
             "title": "Dimensy API",
-            "description": "Dimensy is a Digital Document Authorization Platform that can be accessed from our website. or through API.",
-            "termsOfService": "http://dimensy.id/terms/",
-            "contact": [{
-              "email": "support@dimensy.id"
-            }],
             "version": "0.1"
     },
     "servers": [
@@ -169,171 +164,6 @@
                     }
                 }
             }
-        },
-        "/info/token": 
-        {
-            "get": 
-            {
-                "description": "Returns the token of a certain user",
-                "responses":{
-                    "200":{
-                        "description":"successful operation",
-                        "schema":{
-                            "$ref":"#/definitions/Token"
-                        }
-                        
-                    },
-                    "400":{
-                        "description":"unsuccessful",
-                        "schema":{
-                            "$ref":"#/definitions/Token"
-                        }
-                        
-                    }
-                }
-            }
-        },
-        "/info/{companyId}/quota": 
-        {
-            "get": 
-            {
-                "summary":"checking quota",
-                "description": "Returns the quota of one company",
-                "consumes":["multipart/form-data"],
-                "produces":["application/json"],
-                "parameters":[
-                    {
-                        "name":"companyId",
-                        "in":"path",
-                        "description":"Company ID",
-                        "required":true,
-                        "type":"integer",
-                        "format":"int64",
-                        "maximum" : 50,
-                        "examples" : {
-                            "zero" : {
-                                "value" : 0,
-                                "summary" : "A sample companyId value"
-                            },
-                            "max" : {
-                                "value" : 50,
-                                "summary" : "A sample companyId value"
-                            }
-                        }
-                    },
-                    {
-                        "name":"additionalMetadata",
-                        "in":"formData",
-                        "description":"Additional data to pass to server",
-                        "required":false,
-                        "type":"string"
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description":"successful operation",
-                        "schema":{
-                            "$ref":"#/definitions/Quota"
-                        }
-                    }
-                }
-            }
-        },
-        "/users": 
-        {
-            "get": 
-            {
-                "description": "Returns all users from the system that the user has access to",
-                "responses": 
-                {
-                    "200": 
-                    {          
-                        "description": "Received users information",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/User"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/users/getUser": 
-        {
-            "get": 
-            {
-                "description": "Returns a user from the requested name that the user has access to",
-                "responses": 
-                {
-                    "200": 
-                    {          
-                        "description": "A User.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/User"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/pet/{petId}/uploadImage":
-        {
-            "post":
-            {
-                "summary":"uploads an image",
-                "description":"",
-                "operationId":"uploadFile",
-                "consumes":["multipart/form-data"],
-                "produces":["application/json"],
-                "parameters":[
-                    {
-                        "name":"petId",
-                        "in":"path",
-                        "description":"ID of pet to update",
-                        "required":true,
-                        "type":"integer",
-                        "format":"int64"
-                    },
-                    {
-                        "name":"additionalMetadata",
-                        "in":"formData",
-                        "description":"Additional data to pass to server",
-                        "required":false,
-                        "type":"string"
-                    },
-                    {
-                        "name":"file",
-                        "in":"formData",
-                        "description":"file to upload",
-                        "required":false,
-                        "type":"file"
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description":"successful operation",
-                        "schema":{
-                            "$ref":"#/definitions/ApiResponse"
-                        }
-                    }
-                },
-                "security":[
-                    {
-                        "petstore_auth":["write:pets","read:pets"]
-                    }
-                ]
-            }
         }
     },
     "components": {
@@ -435,18 +265,6 @@
                 "type": "apiKey",
                 "name": "api_key",
                 "in": "header"
-            },
-            "petstore_auth": {
-                "type": "oauth2",
-                "flows": {
-                    "implicit": {
-                        "authorizationUrl": "http://example.org/api/oauth/dialog",
-                        "scopes": {
-                            "write:pets": "modify pets in your account",
-                            "read:pets": "read your pets"
-                        }
-                    }
-                }
             }
         }
     },
