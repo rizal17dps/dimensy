@@ -2,7 +2,12 @@
     "swagger":"2.0",
     "info":{
             "title": "Dimensy API",
-            "version": "0.1"
+            "version": "0.1",
+            "x-logo": {
+                "url": "/../image/logo.svg",
+                "backgroundColor": "#FAFAFA",
+                "altText": "Dimensy logo"
+              }
     },
     "servers": [
         {
