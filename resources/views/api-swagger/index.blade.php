@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>dimensy API</title>
+  <title>Dimensy API</title>
   <link rel="stylesheet" type="text/css" href="{{ asset('css/api-swagger/swagger-ui.css') }}" />
   <link rel="icon" type="image/png" href="image/icon.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="image/icon.png" sizes="16x16" />
@@ -38,7 +38,7 @@
       // https://petstore.swagger.io/v2/swagger.json
       // Begin Swagger UI call region {{ asset('json/test-doc.json') }}
       const ui = SwaggerUIBundle({
-        url: "{{ asset('json/dimensy.json') }}",
+        url: "{{ asset('yaml/dimensy.yaml') }}",
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [

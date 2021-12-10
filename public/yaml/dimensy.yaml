@@ -1,0 +1,916 @@
+---
+openapi: 3.0.0
+
+info:
+  title: Dimensy API
+  version: '0.2'
+  x-logo:
+    url: "/../image/logo.svg"
+    backgroundColor: "#FAFAFA"
+    altText: Dimensy logo
+
+servers:
+- url: https://api.dimensy.id
+  description: The production API server
+  variables:
+    username:
+      default: demo
+      description: this value is assigned by the service provider, in this example
+        `gigantic-server.com`
+    port:
+      enum:
+      - '8443'
+      - '443'
+      default: '443'
+    basePath:
+      default: v1
+- url: https://api-sandbox.dimensy.id
+  description: The Sandbox API server
+  variables:
+    username:
+      default: demo
+      description: this value is assigned by the service provider, in this example
+        `gigantic-server.com`
+    port:
+      enum:
+      - '8443'
+      - '443'
+      default: '443'
+    basePath:
+      default: v1
+
+tags:
+  - name : apis
+    x-displayName: API Lists
+  - name : package_model
+    x-displayName: The Package Model
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/Package" />
+  - name : document_model
+    x-displayName: The Document Model
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/Document" />
+  - name : signer_model
+    x-displayName: The Signer Model
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/Signer" />
+
+x-tagGroups:
+  - name: API
+    tags:
+      - apis
+  - name: Models
+    tags:
+      - package_model
+      - document_model
+      - signer_model
+
+schemes:
+- https
+- http
+
+paths:
+  "/api/sendDocument":
+    post:
+      tags :
+      - apis
+      summary: Send Document
+      description: Sending document
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Document"
+            examples:
+              Send1:
+                $ref : "#/components/examples/bodySend"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponse" 
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+          
+  "/api/getDocument":
+    get:
+      tags :
+      - apis
+      summary: Get Documents
+      description: Receive documents available to be signed
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref : "#/components/schemas/DocumentFile"
+                  message:
+                    type: string
+                    example: Success
+              example:
+                code: 0
+                data:
+                - dataId: 308
+                  fileName: data.pdf
+                  status: ONPROGRESS
+                - dataId: 309
+                  fileName: data.pdf
+                  status: STAMP
+                - dataId: 325
+                  fileName: 20211101data-single.pdf
+                  status: DELETED
+                - dataId: 326
+                  fileName: 20211029data-series.pdf
+                  status: ONPROGRESS
+                - dataId: 329
+                  fileName: 20211104data-single.pdf
+                  status: COMPLETED
+                - dataId: 374
+                  fileName: 20211109data-paralel.pdf
+                  status: SEALED
+                message: Success
+          
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+  "/api/signing":
+    post:
+      tags :
+      - apis
+      summary: Sign Document
+      description: Signing document
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dataId:
+                  type: string
+                otpCode:
+                  type: string
+                tokenCode:
+                  type: string
+            examples:
+              First:
+                value:
+                  dataId: '1028440'
+                  otpCode: "142289"
+                  tokenCode:  "84a634929cd04784ac7ac5c158f26a53"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponse" 
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+  "/api/signService":
+    post:
+      tags :
+      - apis
+      summary: Sign Service
+      description: Sign Services
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Document"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponse" 
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+  "/api/meteraiSigning":
+    post:
+      tags :
+      - apis
+      summary: Meterai Placement
+      description: Placing e-Meterai to your document
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/MeteraiDocument"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponse" 
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+  "/api/DocType":
+    get:
+      tags :
+      - apis
+      summary: Document Type
+      description: Get Document Type Info
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      type : object
+                      properties:
+                        id:
+                          type: string
+                        nama:
+                          type : string
+                  message:
+                    type: string
+                    example: Process Successful
+              example:
+                code: 0
+                data:
+                - id: 45b752ce-8844-4486-b648-6da905276bba
+                  nama: Akta Pejabat
+                - id: 8d6c3260-51d3-43d7-a574-fd326f6a0841
+                  nama: Surat Berharga
+                - id: 64eac3d0-088d-497d-b5ae-7f42bcd85b6b
+                  nama: Dokumen Transaksi
+                - id: fba59e44-72d2-4790-80b7-850aea2c54c4
+                  nama: Dokumen Lelang
+                - id: cc64b216-3108-4496-8890-0d585fc31899
+                  nama: Dokumen pernyataan jumlah uang lebih dari 5jt
+                - id: 8c7f6100-fd8b-4b4a-8356-22a301265614
+                  nama: Akta Notaris
+                - id: 32208144-45ca-4414-8707-bd6ba6e335c5
+                  nama: Surat Perjanjian
+                - id: 8e852a7d-231a-4238-8f80-cc34ae97a71c
+                  nama: Dokumen Lain-lain
+                message: Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+  "/api/download":
+    get:
+      tags :
+      - apis
+      summary: Download Document
+      description: Download Signed Document
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format   
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dataId:
+                  type: string
+                  example: '491'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: Process Successful
+                  data:
+                    type: object
+                    properties:
+                      base64document:
+                        type: string
+                        example: JVBERi0xLjYKJeLjz9MKMiAwIG9iago8PC9Db2xvclNwYWNlL0RldmljZUdyYXkvU3VidHlwZS9JbWFnZS9IZWlnaH...
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+  "/api/quota":
+    get:
+      tags :
+      - apis
+      summary: Get Quota Info
+      description: Receive quota for a certain company
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      companyName:
+                        type: string
+                        example: Dummy Company
+                      package:
+                        "$ref": "#/components/schemas/Package"
+                  message:
+                    type: string
+                    example: Success
+              examples:
+                Dummy Company:
+                  value:
+                    code: 0
+                    data:
+                      companyName: Dummy Company
+                      package:
+                        name: Paket A
+                        expired: '2021-11-14'
+                        detail:
+                        - name: Stamp
+                          quota: '100'
+                        - name: OTP
+                          quota: '295'
+                        - name: Materai
+                          quota: '88'
+                        - name: Upload
+                          quota: '5'
+                        - name: User
+                          quota: '86'
+                        - name: Keyla
+                          quota: '276'
+                        - name: Sign
+                          quota: '71'
+                        - name: Storage
+                          quota: '9.98'
+                    message: Success
+                Dummy Company 2:
+                  value:
+                    code: 200
+                    data:
+                      companyName : Dummy Company 2
+                      package :
+                        name : Paket B
+                        expired : "2022-02-28"
+                        detail :
+                        - name : User
+                          quota : '100'
+                        - name : Stamp
+                          quota : '100'
+                        - name : Keyla
+                          quota : '300'
+                    message : Success
+                
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+  "/api/getOtp":
+    get:
+      tags :
+      - apis
+      summary: Get OTP
+      description: Get OTP
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: apiKey
+        in: header
+        description: API Key from dashboard
+        required: true
+        schema:
+          type: string
+      - name: email
+        in: header
+        description: Email User
+        required: true
+        schema:
+          type: string
+        examples:
+          email1:
+            value: example@email.com
+            summary: Sample e-mail format
+          email2:
+            value: example@gmail.com
+            summary: Sample google e-mail format  
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dataId:
+                  type: string
+                  example: '1028440'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  data:
+                    "$ref": "#/components/schemas/OTP"
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseFail"
+
+components:
+  examples:
+    VehicleStoreEx1:
+      summary: VehicleStoreEx1
+      value:
+        name: vehicle 1
+    VehicleStoreEx2:
+      summary: VehicleStoreEx2
+      value:
+        name: vehicle 1
+        model: Tesla
+    bodySend:
+      summary: Contoh Body
+      value:
+        content:
+          filename: cobadariAPI.pdf
+          base64Doc: JVBERi0xLjcKJaGzxdcKMSAwIG9iago8PC9OYW1lczw8L0Rlc3RzIDQgMCBSID4.....
+          signer:
+            lowerLeftX: '307'
+            lowerLeftY: '23'
+            upperRightX: '377'
+            upperRightY: '41'
+            page: '1'
+            location: Jakarta
+            reason: Approve
+  schemas:
+    GeneralError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 200
+        dataId:
+          type: integer
+          format: int32
+        message:
+          type: string
+          example: Process Successful
+    ApiResponseFail:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        dataId:
+          type: integer
+          format: int32
+        message:
+          type: string
+          example: Process Unsuccessful
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Category
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+        phone:
+          type: string
+        userStatus:
+          type: integer
+          format: int32
+          description: User Status
+      xml:
+        name: User
+    DocumentFile:
+      type: object
+      properties:
+        dataId:
+          type: integer
+          format: int32
+        fileName:
+          type: string
+          example: data.pdf
+        status:
+          type: string
+          example: ONPROGRESS
+    Token:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        token:
+          type: string
+    Package:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Paket A
+        expired:
+          type: string
+          format: date
+          example: '2021-11-14'
+        detail:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Quota"
+      xml:
+        name: Package
+    Quota:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Stamp
+        quota:
+          type: string
+          example : '100'
+      xml:
+        name: Quota
+    OTP:
+      type: object
+      properties:
+        token:
+          type: string
+          example: 84a634929cd04784ac7ac5c158f26a53
+        dataId:
+          type: integer
+          format: int64
+          example: 1028440
+    Document:
+      type: object
+      properties:
+        content:
+          type: object
+          properties:
+            filename:
+              type: string
+            base64doc:
+              type: string
+            signer:
+              "$ref": "#/components/schemas/Signer"
+    MeteraiDocument :
+      description : Request Body Meterai Document
+      allOf:
+      - $ref : "#/components/schemas/Document"
+      - type: object
+        properties:
+          content:
+            type: object
+            properties:
+              noDoc:
+                type: integer
+                format: int32
+                description: Document number
+                default: 1
+                minimum: 1
+              tglDoc:
+                type : string
+                format : date
+              docpass:
+                type : string
+    Signer:
+      type: object
+      properties:
+        lowerLeftX:
+          type: string
+        lowerLeftY:
+          type: string
+        upperRightX:
+          type: string
+        upperRightY:
+          type: string
+        page:
+          type: string
+        location:
+          type: string
+        certificateLevel:
+          type: string
+        reason:
+          type: string
+
+  parameters:
+    skipParam:
+      name: skip
+      in: query
+      description: number of items to skip
+      required: true
+      schema:
+        type: integer
+        format: int32
+    limitParam:
+      name: limit
+      in: query
+      description: max records to return
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+  response:
+    NotFound:
+      description: Entity not found.
+    IllegalInput:
+      description: Illegal input for operation.
+    GeneralError:
+      description: General Error
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/GeneralError"
+
+  # securitySchemes:
+  #   api_key:
+  #     type: apiKey
+  #     name: api_key
+  #     in: header
+  
