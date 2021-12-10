@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\CekCredential;
+use App\Services\Utils;
 
 class RegisterController extends Controller
 {
     //
-    public function __construct(CekCredential $cekCredential){
+    public function __construct(CekCredential $cekCredential, Utils $utils){
         $this->cekCredential = $cekCredential;
+        $this->utils = $utils;
     }
 
     public function registerUser(Request $request) {
@@ -36,6 +38,7 @@ class RegisterController extends Controller
                 DB::rollBack();
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
+                
                 $request->validate([
                     'name' => ['required', 'string', 'max:255'],
                     'nik' => ['required', 'digits:16', 'unique:users'],
@@ -48,10 +51,17 @@ class RegisterController extends Controller
                     'prov' => ['required', 'string', 'max:255'],
                     'email' => ['required', 'string', 'email', 'max:255', 'unique:users', 'regex:/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix'],
                     'password' => ['required', 'string', 'min:8'],
-                    'foto_ktp' => ['required','mimes:jpeg,jpg,png','max:1048'],
-                    'foto_npwp' => ['mimes:jpeg,jpg,png','max:1048'],
-                    'selfi' => ['mimes:jpeg,jpg,png','max:1048']
+                    'foto_ktp' => ['required', 'string'],
+                    'foto_npwp' => ['string'],
                 ]);
+
+                $size = $this->utils->getBase64FileSize($request->input('foto_ktp'));
+
+                if(str_replace(".", "", round($size, 3)) > 2048){
+                    return response(['code' => 95, 'message' => 'Upload Limit']);
+                }
+
+                
             }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
