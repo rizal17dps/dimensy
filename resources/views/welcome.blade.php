@@ -19,7 +19,7 @@
     </style>
   </head>
   <body>
-    <redoc spec-url="{{ asset('yaml/dimensy.yaml') }}"></redoc>
+    <redoc spec-url="{{ asset('json/dimensy.json') }}"></redoc>
     <script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"> </script>
   </body>
 </html>

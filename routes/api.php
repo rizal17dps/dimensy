@@ -33,3 +33,6 @@ Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerU
 
 //cek quota
 Route::get('/quota', '\App\Http\Controllers\Api\QuotaController@cekQuota');
+
+//Meterai
+Route::get('/DocType', '\App\Http\Controllers\Api\MeteraiController@jenisDok');
