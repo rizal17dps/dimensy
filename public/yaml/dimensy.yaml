@@ -207,6 +207,12 @@ paths:
                       type: integer
                       format: int32
                       description: Response ID
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Success
+                    dataId: 491
         '400':
           description: unsuccessful operation
           content:
@@ -248,6 +254,12 @@ paths:
                       type: integer
                       format: int32
                       description: Response ID
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    dataId: 460
+                    message: Success
         '400':
           description: unsuccessful operation
           content:
@@ -662,14 +674,15 @@ components:
               noDoc:
                 type: integer
                 format: int32
-                description: Document number
+                description: Document number. Defined from the document's content
                 default: 1
                 minimum: 1
-              tglDoc:
-                type : string
-                format : date
               docpass:
                 type : string
+                description: Document password, if any
+              docType:
+                type : string
+                description: Document type ID acquired from Document Type API
     GetDocument:
       description : Response for Get Document
       allOf:
@@ -698,7 +711,7 @@ components:
           description: The status of the document
     Signer:
       type: object
-      description: Contains the coordinates of the signature on your document.
+      description: Contains the coordinates of the authorization element (Sign, Meterai, or Stamp) on your document.
       properties:
         lowerLeftX:
           type: string
@@ -714,8 +727,6 @@ components:
         location:
           type: string
           description: The City or Country where the process is running at.
-        certificateLevel:
-          type: string
     DocumentTypeResponse:
       description : Response for Document Type
       allOf:
