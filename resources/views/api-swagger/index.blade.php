@@ -4,6 +4,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>Dimensy API</title>
   <link rel="stylesheet" type="text/css" href="{{ asset('css/api-swagger/swagger-ui.css') }}" />
   <link rel="icon" type="image/png" href="image/icon.png" sizes="32x32" />
