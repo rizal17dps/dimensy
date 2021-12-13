@@ -8,19 +8,22 @@ use App\Models\Sign;
 use App\Models\User;
 use App\Models\ListSigner;
 use App\Models\dokSign;
+use App\Models\MapCompany;
 use App\Services\CekCredential;
 use App\Services\Utils;
 use App\Services\SignService;
+use App\Services\CompanyService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SendController extends Controller
 {
     //
-    public function __construct(CekCredential $cekCredential, Utils $utils, SignService $sign){
+    public function __construct(CekCredential $cekCredential, Utils $utils, SignService $sign, CompanyService $companyService){
         $this->cekCredential = $cekCredential;
         $this->utils = $utils;
         $this->sign = $sign;
+        $this->companyService = $companyService;
     }
 
     public function getDocument(Request $request) {
@@ -95,7 +98,7 @@ class SendController extends Controller
                 DB::rollBack();
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
-
+                
                 $request->validate([
                     'content' => 'required|array',
                     'content.filename' => 'required',
@@ -107,12 +110,32 @@ class SendController extends Controller
                     'content.signer.upperRightY' => 'required',
                     'content.signer.page' => 'required|numeric',
                     'content.signer.location' => 'string|regex:/^[a-zA-Z]+$/u',
-                    'content.signer.reason' => 'string|max:255',
                 ]);            
 
                 $user = User::where('email', $email)->where('is_active', 'true')->first();
                 if($user){
-                    if($user->company_id == $cekToken){                        
+                    if($user->company_id == $cekToken){
+                        
+                        if($this->utils->cekExpired($user->company->mapsCompany->expired_date)){
+                            return response(['code' => 95, 'message' => 'Your package has run out, please update your package']);
+                        }
+
+                        $map = MapCompany::with('paket', 'paket.maps')->where('company_id', $user->company_id)->first();
+                        $quotaSign = "";
+                        $quotaOtp = "";
+                        $quotaKeyla = "";
+
+                        foreach($map->paket->maps as $map){
+                            if($map->detail->type == 'sign'){
+                                $quotaSign = $map->detail->id;
+                            }
+                        }
+
+                        if($this->companyService->cek($quotaSign, $cekEmail->id)){
+                            DB::rollBack();
+                            return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                        }
+
                         $size = $this->utils->getBase64FileSize($request->input('content.base64Doc'));
 
                         $limitUpload = DB::table('map_company')
@@ -152,12 +175,11 @@ class SendController extends Controller
                                 $signer->upper_right_x = $request->input('content.signer.upperRightX');
                                 $signer->upper_right_y = $request->input('content.signer.upperRightY');
                                 $signer->page = $request->input('content.signer.page');
-                                $signer->page = $request->input('content.signer.page');
-                                $signer->reason = $request->input('content.signer.reason');
+                                $signer->reason = 'Signed';
                                 $signer->location = $request->input('content.signer.location');
                                 if($signer->save()){
                                     $doks = Sign::find((int)$sign->id);
-                                    $listSigner = ListSigner::where('dokumen_id', $sign->id)->where('users_id', $cekEmail)->where('step', $doks->step)->first();
+                                    $listSigner = ListSigner::where('dokumen_id', $sign->id)->where('users_id', $cekEmail->id)->where('step', $doks->step)->first();
                                     if($listSigner){
                                         $params = [
                                             "param" => [
@@ -201,7 +223,7 @@ class SendController extends Controller
                                             $dokSign->save();
 
                                             DB::commit();
-                                            return response(['code' => 0, 'dataId' => $dokSign->orderId, 'message' => 'Success']);
+                                            return response(['code' => 0, 'dataId' => $sign->id, 'message' => 'Success']);
                                         } else {
                                             DB::rollBack();
                                             return response(['code' => 96, 'message' => $signing['resultDesc']]);
@@ -253,20 +275,54 @@ class SendController extends Controller
                 DB::rollBack();
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
+                if($this->utils->cekExpired($cekEmail->company->mapsCompany->expired_date)){
+                    return response()->json(['success'=>false, 'msg'=>'Your package has run out, please update your package']);
+                }
+
+                $map = MapCompany::with('paket', 'paket.maps')->where('company_id', $cekEmail->company_id)->first();
+                $quotaSign = "";
+                $quotaOtp = "";
+                $quotaKeyla = "";
+
+                foreach($map->paket->maps as $map){
+                    if($map->detail->type == 'sign'){
+                        $quotaSign = $map->detail->id;
+                    } else if($map->detail->type == 'otp') {
+                        $quotaOtp = $map->detail->id;
+                    } else if($map->detail->type == 'keyla') {
+                        $quotaKeyla = $map->detail->id;
+                    }
+                }
+
+                if($this->companyService->cek($quotaSign, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
                 $request->validate([
                     'dataId' => 'required',
-                    'otpCode' => 'required',
-                    'tokenCode' => 'required',
+                    'otpCode' => 'string',
+                    'tokenCode' => 'string',
                 ]);
 
-                $dokSign = dokSign::where('orderId', $request->input('dataId'))->first();
+                if($this->companyService->cek($quotaSign, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+                
+                if($this->companyService->cek($quotaOtp, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
+                $dokSign = dokSign::where('dokumen_id', $request->input('dataId'))->first();
                 if($dokSign){
                     $doks = Sign::find($dokSign->dokumen_id);
                     $params = [
                         "requestSigning" => 
                             [
                                 "systemId" => 'PT-DPS',
-                                "orderId" => ''.$request->input('dataId').'',
+                                "orderId" => ''.$dokSign->orderId.'',
                                 "token" => ''.$request->input('tokenCode').'',
                                 "otpCode" => ''.$request->input('otpCode').''
                             ]
@@ -278,7 +334,7 @@ class SendController extends Controller
                             "param" => 
                             [
                                 "systemId" => 'PT-DPS',
-                                "orderId" => ''.$request->input('dataId').'',
+                                "orderId" => ''.$dokSign->orderId.'',
                             ]
                         ];
                         
@@ -304,7 +360,6 @@ class SendController extends Controller
                                     $cekSign->save();
                                 }                    
                 
-                                DB::commit();
                                 $sukses = true;
                                 break;                      
                             } else {
@@ -313,7 +368,18 @@ class SendController extends Controller
                         }
 
                         if($sukses){
-                            return response(['code' => 0, 'message' => 'Success', 'data'=>$doks->id]);
+                            if(!$this->companyService->history($quotaSign, $cekEmail->id)){
+                                DB::rollBack();
+                                return response(['code' => 98, 'message' => 'Error create History']);
+                            }
+
+                            if(!$this->companyService->history($quotaOtp, $cekEmail->id)){
+                                DB::rollBack();
+                                return response(['code' => 98, 'message' => 'Error create History']);
+                            }
+
+                            DB::commit();
+                            return response(['code' => 0, 'message' => 'Success', 'dataId'=>$doks->id]);
                         } else {                           
                             return response(['code' => 96, 'message' => $viewDoc["resultDesc"]]);
                             //return back()->withError('Failed to generate '.$viewDoc['resultDesc']);
@@ -363,7 +429,32 @@ class SendController extends Controller
                     'dataId' => 'required'
                 ]);
 
-                $doks = dokSign::where('orderId', (int)$request->input('dataId'))->first();
+                $map = MapCompany::with('paket', 'paket.maps')->where('company_id', $cekEmail->company_id)->first();
+                $quotaSign = "";
+                $quotaOtp = "";
+                $quotaKeyla = "";
+
+                foreach($map->paket->maps as $map){
+                    if($map->detail->type == 'sign'){
+                        $quotaSign = $map->detail->id;
+                    } else if($map->detail->type == 'otp') {
+                        $quotaOtp = $map->detail->id;
+                    } else if($map->detail->type == 'keyla') {
+                        $quotaKeyla = $map->detail->id;
+                    }
+                }
+
+                if($this->companyService->cek($quotaSign, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
+                if($this->companyService->cek($quotaOtp, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
+                $doks = dokSign::where('dokumen_id', (int)$request->input('dataId'))->first();
                 if($doks){
                     $params = [
                         "param" => [
@@ -375,7 +466,7 @@ class SendController extends Controller
 
                     if($getOtp["resultCode"] == "0"){
                         $data['token'] = $getOtp["data"]["token"];
-                        $data['dataId'] = $doks->orderId;
+                        $data['dataId'] = $doks->dokumen_id;
                         DB::commit();
                         return response()->json(['code'=>0, 'data'=>$data]);
                     } else {
@@ -428,21 +519,8 @@ class SendController extends Controller
                     if($dok->status_id == 3){
                         $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Signed')->first();
                         if($dokSign){
-                            $params = [
-                                "param" => 
-                                [
-                                    "systemId" => 'PT-DPS',
-                                    "orderId" => ''.$dokSign->orderId.'',
-                                ]
-                            ];
-                            
-                            $viewDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
-                            if($viewDoc["resultCode"] == "0"){
-                                return response(['code' => 0, 'message' => 'Success', 'data'=>$viewDoc["data"]]);
-                                $sukses = true;                 
-                            } else {
-                                return response(['code' => 96, 'message' => $viewDoc["resultDesc"]]);
-                            }
+                            $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/ttd/' . $dokSign->name));
+                            return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
                         } else {
                             return response(['code' => 96, 'message' => 'Document not found']);
                         }                  

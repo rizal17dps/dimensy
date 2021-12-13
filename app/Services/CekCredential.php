@@ -23,7 +23,7 @@ class CekCredential
         $user = User::where('email', $email)->where('is_active', 'true')->first();
         if($auth && $user){
             if($auth->company_id == $user->company_id){
-                return $user->id;
+                return $user;
             } else {
                 return false;
             }

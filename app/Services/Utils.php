@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use DateTime;
+
 class Utils
 {
     public function getBase64FileSize($base64) {
@@ -14,6 +16,16 @@ class Utils
         }
         catch(Exception $e){
             return $e;
+        }
+    }
+
+    public function cekExpired($date){
+        $date1 = new DateTime($date);
+        $date2 = new DateTime("now");
+        if($date1 <= $date2){
+            return true;
+        } else {
+            return false;
         }
     }
 }

@@ -36,3 +36,4 @@ Route::get('/quota', '\App\Http\Controllers\Api\QuotaController@cekQuota');
 
 //Meterai
 Route::get('/DocType', '\App\Http\Controllers\Api\MeteraiController@jenisDok');
+Route::post('/meteraiSigning', '\App\Http\Controllers\Api\MeteraiController@signingMeterai');
