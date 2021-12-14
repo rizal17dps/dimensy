@@ -34,6 +34,9 @@ Route::post('/sendBulkDocument', '\App\Http\Controllers\Api\SendBulkController@s
 Route::post('/getOtpBulk', '\App\Http\Controllers\Api\SendBulkController@getOtp');
 Route::post('/signingBulk', '\App\Http\Controllers\Api\SendBulkController@signing');
 
+//Serial Sign
+Route::post('/sendDocumentSerial', '\App\Http\Controllers\Api\SendSerialController@sendDocument');
+
 //Register User
 Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerUser');
 
