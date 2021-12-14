@@ -28,6 +28,12 @@ Route::post('/sendDocument', '\App\Http\Controllers\Api\SendController@sendDocum
 Route::post('/signing', '\App\Http\Controllers\Api\SendController@signing');
 Route::post('/getOtp', '\App\Http\Controllers\Api\SendController@getOtp');
 Route::post('/download', '\App\Http\Controllers\Api\SendController@download');
+
+//BulkUploadDok
+Route::post('/sendBulkDocument', '\App\Http\Controllers\Api\SendBulkController@sendDocument');
+Route::post('/getOtpBulk', '\App\Http\Controllers\Api\SendBulkController@getOtp');
+Route::post('/signingBulk', '\App\Http\Controllers\Api\SendBulkController@signing');
+
 //Register User
 Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerUser');
 

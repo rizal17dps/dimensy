@@ -73,7 +73,7 @@ class SignService
                 'jwtSandbox/1.0/getJsonWebToken/v1',
                 [
                     "param" => [
-                        "systemId" => env('SYSTEMID'),
+                        "systemId" => "PT-DPS",
                     ],
                 ]
             );
@@ -83,6 +83,7 @@ class SignService
     public function callAPI(string $uri = null, array $params = [])
     {
         try{
+            
             $auth = AuthModel::whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
             if($auth){
                 $x = $this->getResponse(
@@ -94,11 +95,13 @@ class SignService
                     $x = $this->getResponse(
                         $uri,$params,$cek['data']["jwt"]
                     );
+                    
                     AuthModel::truncate();
                     $auth = new AuthModel();
                     $auth->token = $cek['data']["jwt"];
                     $auth->expired = $cek['data']["expiredDate"];
                     $auth->created = date("Y-m-d H:i:s");
+                    
                     $auth->save();
                 } else {
                     $x = $cek;

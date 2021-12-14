@@ -207,13 +207,6 @@ class SendController extends Controller
 
                                         $signing = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocument/v1', $params);
                                         if($signing['resultCode'] == 0){
-                                            $params = [
-                                                "param" => [
-                                                    "systemId" => 'PT-DPS',
-                                                    "orderId" => ''.$signing['data']['orderId'].'',
-                                                ]
-                                            ];
-
                                             $dokSign = dokSign::firstWhere('dokumen_id', $sign->id);
                                             if(!$dokSign){
                                                 $dokSign = new dokSign();
