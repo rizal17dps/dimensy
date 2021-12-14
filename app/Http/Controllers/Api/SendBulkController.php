@@ -356,6 +356,7 @@ class SendBulkController extends Controller
     
                     $sign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/signingBulk/v1', $params);
                     if($sign["resultCode"] == 0){
+                        $i = 1;
                         foreach($sign["data"] as $signData){
                             $params = [
                                 "param" => 
@@ -388,7 +389,13 @@ class SendBulkController extends Controller
                                     }                    
                     
                                     $sukses = true;
-                                    break 2;                      
+
+                                    if(!$this->companyService->history($quotaSign, $cekEmail->id)){
+                                        DB::rollBack();
+                                        return response(['code' => 98, 'message' => 'Error create History']);
+                                    }
+        
+                                    break;                      
                                 } else {
                                     $sukses = false;
                                 }
@@ -396,16 +403,12 @@ class SendBulkController extends Controller
                         }                        
 
                         if($sukses){
-                            if(!$this->companyService->history($quotaSign, $cekEmail->id)){
-                                DB::rollBack();
-                                return response(['code' => 98, 'message' => 'Error create History']);
-                            }
-
+                            
                             if(!$this->companyService->history($quotaOtp, $cekEmail->id)){
                                 DB::rollBack();
                                 return response(['code' => 98, 'message' => 'Error create History']);
                             }
-
+                            
                             DB::commit();
                             return response(['code' => 0, 'message' => 'Success', 'dataId'=>$doks->id]);
                         } else {                           
