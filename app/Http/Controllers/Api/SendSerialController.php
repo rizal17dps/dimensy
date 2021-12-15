@@ -13,6 +13,8 @@ use App\Services\CompanyService;
 use App\Models\User;
 use App\Models\MapCompany;
 use App\Models\Sign;
+use App\Models\ListSigner;
+use App\Models\dokSign;
 
 class SendSerialController extends Controller
 {
@@ -132,7 +134,7 @@ class SendSerialController extends Controller
 
                             $params = [
                                 "param" => [
-                                    "systemId" => env('SYSTEMID'),
+                                    "systemId" => 'PT-DPS',
                                     //"uploader"=> auth()->user()->email,
                                     "uploader"=> $cekEmail->email,
                                     "payload"=> [
@@ -146,7 +148,7 @@ class SendSerialController extends Controller
                             $sendDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocumentTier/v1', $params);
 
                             if($sendDoc["resultCode"] == 0){
-                                $dokSign = dokSign::where('dokumen_id', $request->input('idDok'))->first();
+                                $dokSign = dokSign::where('dokumen_id', $sign->id)->first();
                                 if(!$dokSign){
                                     $dokSign = new dokSign();
                                 }
@@ -237,24 +239,36 @@ class SendSerialController extends Controller
                             return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
                         }
 
+                        $dokSign = dokSign::where('dokumen_id', $request->input('setSignature.dataId'))->first();
+
                         $params = [
                             "requestSetSignature" => [
-                                "orderId" => $request->input('setSignature.dataId'),
+                                "orderId" => ''.$dokSign->orderId.'',
                                 "signer"=>
                                 [
                                     "isVisualSign"=> "YES",
-                                    "lowerLeftX"=> ''.$request->input('lowerLeftX').'',
-                                    "lowerLeftY"=> ''.$request->input('lowerLeftY').'',
-                                    "upperRightX"=> ''.$request->input('upperRightX').'',
-                                    "upperRightY"=> ''.$request->input('upperRightY').'',
-                                    "page"=> ''.$request->input('page').'',
+                                    "lowerLeftX"=> ''.$request->input('setSignature.signer.lowerLeftX').'',
+                                    "lowerLeftY"=> ''.$request->input('setSignature.signer.lowerLeftY').'',
+                                    "upperRightX"=> ''.$request->input('setSignature.signer.upperRightX').'',
+                                    "upperRightY"=> ''.$request->input('setSignature.signer.upperRightY').'',
+                                    "page"=> ''.$request->input('setSignature.signer.page').'',
                                     "certificateLevel"=> "NOT_CERTIFIED",
-                                    "varLocation"=> ''.$request->input('location').'',
+                                    "varLocation"=> ''.$request->input('setSignature.signer.location').'',
                                     "varReason"=> "TTD"
                                 ],
-                                "systemId" => env('SYSTEMID')
+                                "systemId" => 'PT-DPS'
                             ]
-                        ];              
+                        ];
+                        
+                        $sendSign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/setSignature/v1', $params);
+                        if($sendSign["resultCode"] == 0){
+                            
+                            DB::commit();
+                            return response(['code'=>0, 'message'=>$sendSign["resultDesc"], 'dataId' => $request->input('setSignature.dataId')]);
+                        } else {
+                            DB::rollBack();
+                            return response(['code'=>97, 'message'=>$sendSign["resultDesc"]]);
+                        }
                         
                     } else {
                         DB::rollBack();
@@ -265,6 +279,166 @@ class SendSerialController extends Controller
                     return response(['code' => 96, 'message' => 'Email not register']);
                 }
             }
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function signingSerial(Request $request) {
+        DB::beginTransaction();
+        try{
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            } else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                if($this->utils->cekExpired($cekEmail->company->mapsCompany->expired_date)){
+                    return response()->json(['success'=>false, 'msg'=>'Your package has run out, please update your package']);
+                }
+
+                $map = MapCompany::with('paket', 'paket.maps')->where('company_id', $cekEmail->company_id)->first();
+                $quotaSign = "";
+                $quotaOtp = "";
+                $quotaKeyla = "";
+
+                foreach($map->paket->maps as $map){
+                    if($map->detail->type == 'sign'){
+                        $quotaSign = $map->detail->id;
+                    } else if($map->detail->type == 'otp') {
+                        $quotaOtp = $map->detail->id;
+                    } else if($map->detail->type == 'keyla') {
+                        $quotaKeyla = $map->detail->id;
+                    }
+                }
+
+                if($this->companyService->cek($quotaSign, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
+                $request->validate([
+                    'dataId' => 'required',
+                    'otpCode' => 'string',
+                    'tokenCode' => 'string',
+                ]);
+
+                if($this->companyService->cek($quotaSign, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+                
+                if($this->companyService->cek($quotaOtp, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
+                $dokSign = dokSign::where('dokumen_id', $request->input('dataId'))->first();
+                if($dokSign){
+                    $doks = Sign::find($dokSign->dokumen_id);
+                    $params = [
+                        "requestSigning" => 
+                            [
+                                "systemId" => 'PT-DPS',
+                                "orderId" => ''.$dokSign->orderId.'',
+                                "token" => ''.$request->input('tokenCode').'',
+                                "otpCode" => ''.$request->input('otpCode').''
+                            ]
+                    ];
+    
+                    $sign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/signingTier/v1', $params);
+                    if($sign["resultCode"] == 0 && !isset($sign["data"]["orderIdNextSigner"])){   
+                        $params = [
+                            "param" => 
+                            [
+                                "systemId" => 'PT-DPS',
+                                "orderId" => ''.$dokSign->orderId.'',
+                            ]
+                        ];
+                        
+                        for($i = 1; $i<=3; $i++){
+                            $viewDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
+                            if($viewDoc["resultCode"] == "0"){
+                                $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);
+                                $fileName = 'SIGNED_'.time().'_'.$doks->realname;
+                                Storage::disk('minio')->put($doks->user->company_id .'/dok/'.$doks->users_id.'/ttd/'.$fileName, $image_base64);    
+                                
+                                $dokSign->name = $fileName;
+                                $dokSign->status = 'Signed';
+                                $dokSign->save();
+            
+                                $doks->status_id = 3;                  
+                                    
+                                $doks->save();
+            
+                                $cekSign = ListSigner::where('dokumen_id', $doks->id)->where('users_id', $doks->user->id)->whereNull('isSign')->first();
+                                
+                                if($cekSign){
+                                    $cekSign->isSign = '1';
+                                    $cekSign->save();
+                                }                    
+                
+                                $sukses = true;
+                                break;                      
+                            } else {
+                                $sukses = false;
+                            }
+                        }
+
+                        if($sukses){
+                            if(!$this->companyService->history($quotaSign, $cekEmail->id)){
+                                DB::rollBack();
+                                return response(['code' => 98, 'message' => 'Error create History']);
+                            }
+
+                            if(!$this->companyService->history($quotaOtp, $cekEmail->id)){
+                                DB::rollBack();
+                                return response(['code' => 98, 'message' => 'Error create History']);
+                            }
+
+                            DB::commit();
+                            return response(['code' => 0, 'message' => 'Success', 'dataId'=>$doks->id]);
+                        } else {                           
+                            return response(['code' => 96, 'message' => $viewDoc["resultDesc"]]);
+                            //return back()->withError('Failed to generate '.$viewDoc['resultDesc']);
+                        }                       
+                        
+                    } else {
+                        DB::rollBack();
+                        return response(['code' => 96, 'message' => $sign["resultDesc"]]);
+                    }
+                } else if($sign["resultCode"] == "0" && isset($sign["data"]["orderIdNextSigner"])) { 
+                    $dokSign->orderId = $viewDoc["data"]["orderIdNextSigner"];
+                    $dokSign->save();
+
+                    $dok = Sign::find($dokSign->dokumen_id);
+                    $dok->step = $dok->step + 1;
+                    $dok->save();
+
+                    DB::commit();
+                    return response(['code' => 0, 'message' => 'Success', 'NextDataId'=>$dok->id]);
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 97, 'message' => 'Document not found']);
+                }               
+                
+            }
+            
         } catch(\Exception $e) {
             DB::rollBack();
             return response(['code' => 99, 'message' => $e->getMessage()]);
