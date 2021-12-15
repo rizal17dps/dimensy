@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Dimensy API",
-    "version": "0.2",
+    "version": "0.25",
     "x-logo": {
       "url": "/../image/logo.svg",
       "backgroundColor": "#FAFAFA",
@@ -51,250 +51,45 @@
       }
     }
   ],
+  "tags": [
+    {
+      "name": "sign",
+      "x-displayName": "Sign Process APIs",
+      "description": "All API signature placement process for Dimensy. The APIs are listed in the correct order. Please follow carefully."
+    },
+    {
+      "name": "meterai",
+      "x-displayName": "Meterai Process APIs",
+      "description": "All API e-meterai placement process for Dimensy. The APIs are listed in the correct order. Please follow carefully."
+    },
+    {
+      "name": "commonProcess",
+      "x-displayName": "Common Process APIs",
+      "description": "A collection of API utilities to improve user convenience."
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "API",
+      "tags": [
+        "sign",
+        "meterai",
+        "commonProcess"
+      ]
+    }
+  ],
   "schemes": [
     "https",
     "http"
   ],
   "paths": {
-    "/api/getDocument": {
-      "get": {
-        "summary": "Get Documents",
-        "description": "Receive document information related to the user. Each document has a status depending on the signing process.",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/apiKeyParam"
-          },
-          {
-            "$ref": "#/components/parameters/emailParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDocument"
-                },
-                "example": {
-                  "code": 0,
-                  "data": [
-                    {
-                      "dataId": 308,
-                      "fileName": "data.pdf",
-                      "status": "ONPROGRESS"
-                    },
-                    {
-                      "dataId": 309,
-                      "fileName": "data.pdf",
-                      "status": "STAMP"
-                    },
-                    {
-                      "dataId": 325,
-                      "fileName": "20211101data-single.pdf",
-                      "status": "DELETED"
-                    },
-                    {
-                      "dataId": 326,
-                      "fileName": "20211029data-series.pdf",
-                      "status": "ONPROGRESS"
-                    },
-                    {
-                      "dataId": 329,
-                      "fileName": "20211104data-single.pdf",
-                      "status": "COMPLETED"
-                    },
-                    {
-                      "dataId": 374,
-                      "fileName": "20211109data-paralel.pdf",
-                      "status": "SEALED"
-                    }
-                  ],
-                  "message": "Success"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unsuccessful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/getOtp": {
-      "get": {
-        "summary": "Get OTP",
-        "description": "Generating the OTP code and send it to your e-mail and SMS.",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/apiKeyParam"
-          },
-          {
-            "$ref": "#/components/parameters/emailParam"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "dataId": {
-                    "type": "string",
-                    "example": "1028440",
-                    "description": "The document ID"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32",
-                      "example": 200,
-                      "description": "Response code"
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/OTP"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unsuccessful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/signing": {
-      "post": {
-        "summary": "Sign Document",
-        "description": "Send the authorization data required to authenticate the signing of the document.",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/apiKeyParam"
-          },
-          {
-            "$ref": "#/components/parameters/emailParam"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "dataId": {
-                    "type": "string",
-                    "description": "The Document ID"
-                  },
-                  "otpCode": {
-                    "type": "string",
-                    "description": "The OTP code required for authentication"
-                  },
-                  "tokenCode": {
-                    "type": "string",
-                    "description": "The token code acquired from Get OTP API Response"
-                  }
-                }
-              },
-              "examples": {
-                "First": {
-                  "value": {
-                    "dataId": "1028440",
-                    "otpCode": "142289",
-                    "tokenCode": "84a634929cd04784ac7ac5c158f26a53"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponse"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "dataId": {
-                          "type": "integer",
-                          "format": "int32",
-                          "description": "Response ID"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unsuccessful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/sendDocument": {
       "post": {
+        "tags": [
+          "sign"
+        ],
         "summary": "Send Document",
-        "description": "Receive Signed Document from user and submit it to our system and the PERURI system to finalize the newly-placed signature.",
+        "description": "Initiate the Signing or Stamping process by submitting documents and signature/stamp information.",
         "parameters": [
           {
             "$ref": "#/components/parameters/apiKeyParam"
@@ -313,7 +108,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Document"
+                "$ref": "#/components/requestBodies/SendDocument"
               },
               "examples": {
                 "Send1": {
@@ -329,101 +124,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponse"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "dataId": {
-                          "type": "integer",
-                          "format": "int32",
-                          "description": "Response ID"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unsuccessful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/DocType": {
-      "get": {
-        "summary": "Document Type",
-        "description": "Get document type information. This document type is mandatory for the Meterai Placement Process.",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/apiKeyParam"
-          },
-          {
-            "$ref": "#/components/parameters/emailParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentTypeResponse"
+                  "$ref": "#/components/response/ApiResponseDataId"
                 },
-                "example": {
-                  "code": 0,
-                  "data": [
-                    {
-                      "id": "45b752ce-8844-4486-b648-6da905276bba",
-                      "nama": "Akta Pejabat"
-                    },
-                    {
-                      "id": "8d6c3260-51d3-43d7-a574-fd326f6a0841",
-                      "nama": "Surat Berharga"
-                    },
-                    {
-                      "id": "64eac3d0-088d-497d-b5ae-7f42bcd85b6b",
-                      "nama": "Dokumen Transaksi"
-                    },
-                    {
-                      "id": "fba59e44-72d2-4790-80b7-850aea2c54c4",
-                      "nama": "Dokumen Lelang"
-                    },
-                    {
-                      "id": "cc64b216-3108-4496-8890-0d585fc31899",
-                      "nama": "Dokumen pernyataan jumlah uang lebih dari 5jt"
-                    },
-                    {
-                      "id": "8c7f6100-fd8b-4b4a-8356-22a301265614",
-                      "nama": "Akta Notaris"
-                    },
-                    {
-                      "id": "32208144-45ca-4414-8707-bd6ba6e335c5",
-                      "nama": "Surat Perjanjian"
-                    },
-                    {
-                      "id": "8e852a7d-231a-4238-8f80-cc34ae97a71c",
-                      "nama": "Dokumen Lain-lain"
+                "examples": {
+                  "Success": {
+                    "value": {
+                      "code": 0,
+                      "dataId": 460,
+                      "message": "Success"
                     }
-                  ],
-                  "message": "Success"
+                  }
                 }
               }
             }
@@ -433,7 +143,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
+                  "$ref": "#/components/response/ApiResponseFail"
                 }
               }
             }
@@ -441,75 +151,13 @@
         }
       }
     },
-    "/api/meteraiSigning": {
-      "post": {
-        "summary": "Meterai Placement",
-        "description": "Receive Finished Document from user and submit it to our system and the PERURI system to finalize the newly-placed e-Meterai.",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/apiKeyParam"
-          },
-          {
-            "$ref": "#/components/parameters/emailParam"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MeteraiDocument"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponse"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "dataId": {
-                          "type": "integer",
-                          "format": "int32",
-                          "description": "Response ID"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unsuccessful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/download": {
+    "/api/getOtp": {
       "get": {
-        "summary": "Download Document",
-        "description": "Download your finished document. A document can be downloaded if it has the status \"COMPLETED\", \"STAMP\", or \"SEALED\"",
+        "tags": [
+          "sign"
+        ],
+        "summary": "Get OTP",
+        "description": "Generate an OTP code and send it to your email and SMS.",
         "consumes": [
           "application/json"
         ],
@@ -528,12 +176,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "dataId": {
-                    "type": "string",
-                    "example": "491",
-                    "description": "The Document ID"
+                "$ref": "#/components/requestBodies/AskDataIDBody"
+              },
+              "examples": {
+                "Sign ID": {
+                  "value": {
+                    "dataId": "460"
                   }
                 }
               }
@@ -546,27 +194,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponse"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "description": "Response data",
-                          "properties": {
-                            "base64document": {
-                              "type": "string",
-                              "description": "the document received in base64 format",
-                              "example": "JVBERi0xLjYKJeLjz9MKMiAwIG9iago8PC9Db2xvclNwYWNlL0RldmljZUdyYXkvU3VidHlwZS9JbWFnZS9IZWlnaH..."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
+                  "$ref": "#/components/response/OTPResponse"
                 }
               }
             }
@@ -576,7 +204,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
+                  "$ref": "#/components/response/ApiResponseFail"
                 }
               }
             }
@@ -584,10 +212,85 @@
         }
       }
     },
-    "/api/quota": {
+    "/api/signing": {
+      "post": {
+        "tags": [
+          "sign"
+        ],
+        "summary": "Sign Document",
+        "description": "Submit the authentication data required to complete document signing.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/apiKeyParam"
+          },
+          {
+            "$ref": "#/components/parameters/emailParam"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OTP"
+              },
+              "examples": {
+                "First": {
+                  "value": {
+                    "dataId": "460",
+                    "otpCode": "142289",
+                    "tokenCode": "84a634929cd04784ac7ac5c158f26a53"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/ApiResponseDataId"
+                },
+                "examples": {
+                  "Success": {
+                    "value": {
+                      "code": 0,
+                      "message": "Success",
+                      "dataId": 460
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "unsuccessful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/ApiResponseFail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/DocType": {
       "get": {
-        "summary": "Get Quota Info",
-        "description": "This API will display the package, its details, and remaining quotas of your company. There are 8 types of quota : User, Upload, Storage, Sign, Stamp, Materai, OTP, and Keyla",
+        "tags": [
+          "meterai"
+        ],
+        "summary": "Document Type",
+        "description": "Get document-type information. This type of document is mandatory for the Meterai Placement Process.",
         "consumes": [
           "application/json"
         ],
@@ -608,7 +311,232 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuotaResponse"
+                  "$ref": "#/components/response/DocumentTypeResponse"
+                },
+                "examples": {
+                  "FirstTypes": {
+                    "$ref": "#/components/examples/DocumentTypes"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "unsuccessful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/ApiResponseFail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meteraiSigning": {
+      "post": {
+        "tags": [
+          "meterai"
+        ],
+        "summary": "Meterai Placement",
+        "description": "Implementation of e-Meterai placement by sending documents and e-Meterai position. Unlike the Signing and Stamping process, this process does not require OTP authentication. So, your e-Stamp will be automatically placed upon successful execution of this API.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/apiKeyParam"
+          },
+          {
+            "$ref": "#/components/parameters/emailParam"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/requestBodies/MeteraiDocument"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/ApiResponseDataId"
+                },
+                "example": {
+                  "code": 0,
+                  "dataId": 491,
+                  "message": "Success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "unsuccessful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/ApiResponseFail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/download": {
+      "get": {
+        "tags": [
+          "commonProcess"
+        ],
+        "summary": "Download Document",
+        "description": "Download your finished document. A document can be downloaded if the status is \"COMPLETED\", \"STAMP\", or \"SEALED\"",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/apiKeyParam"
+          },
+          {
+            "$ref": "#/components/parameters/emailParam"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/requestBodies/AskDataIDBody"
+              },
+              "examples": {
+                "Sign ID": {
+                  "value": {
+                    "dataId": "460"
+                  }
+                },
+                "Meterai ID": {
+                  "value": {
+                    "dataId": "491"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/DownloadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "unsuccessful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/ApiResponseFail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/getDocument": {
+      "get": {
+        "tags": [
+          "commonProcess"
+        ],
+        "summary": "Get Documents",
+        "description": "Receive document information related to the user. Each document has a status depending on the process of signing, stamping, or e-Meterai.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/apiKeyParam"
+          },
+          {
+            "$ref": "#/components/parameters/emailParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/GetDocumentResponse"
+                },
+                "examples": {
+                  "FirstResponse": {
+                    "$ref": "#/components/examples/DocumentResponseEx"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "unsuccessful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/ApiResponseFail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quota": {
+      "get": {
+        "tags": [
+          "commonProcess"
+        ],
+        "summary": "Get Quota Info",
+        "description": "This API will display the package, its details, and the remaining quotas of your company. There are 8 types of quota: User, Upload, Storage, Sign, Stamp, Materai, OTP, and Keyla",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/apiKeyParam"
+          },
+          {
+            "$ref": "#/components/parameters/emailParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/response/QuotaResponse"
                 },
                 "examples": {
                   "Dummy Company": {
@@ -626,7 +554,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseFail"
+                  "$ref": "#/components/response/ApiResponseFail"
                 }
               }
             }
@@ -637,19 +565,6 @@
   },
   "components": {
     "examples": {
-      "VehicleStoreEx1": {
-        "summary": "VehicleStoreEx1",
-        "value": {
-          "name": "vehicle 1"
-        }
-      },
-      "VehicleStoreEx2": {
-        "summary": "VehicleStoreEx2",
-        "value": {
-          "name": "vehicle 1",
-          "model": "Tesla"
-        }
-      },
       "bodySend": {
         "summary": "Contoh Body",
         "value": {
@@ -760,6 +675,84 @@
           },
           "message": "Success"
         }
+      },
+      "DocumentTypes": {
+        "value": {
+          "code": 0,
+          "data": [
+            {
+              "id": "45b752ce-8844-4486-b648-6da905276bba",
+              "nama": "Akta Pejabat"
+            },
+            {
+              "id": "8d6c3260-51d3-43d7-a574-fd326f6a0841",
+              "nama": "Surat Berharga"
+            },
+            {
+              "id": "64eac3d0-088d-497d-b5ae-7f42bcd85b6b",
+              "nama": "Dokumen Transaksi"
+            },
+            {
+              "id": "fba59e44-72d2-4790-80b7-850aea2c54c4",
+              "nama": "Dokumen Lelang"
+            },
+            {
+              "id": "cc64b216-3108-4496-8890-0d585fc31899",
+              "nama": "Dokumen pernyataan jumlah uang lebih dari 5jt"
+            },
+            {
+              "id": "8c7f6100-fd8b-4b4a-8356-22a301265614",
+              "nama": "Akta Notaris"
+            },
+            {
+              "id": "32208144-45ca-4414-8707-bd6ba6e335c5",
+              "nama": "Surat Perjanjian"
+            },
+            {
+              "id": "8e852a7d-231a-4238-8f80-cc34ae97a71c",
+              "nama": "Dokumen Lain-lain"
+            }
+          ],
+          "message": "Success"
+        }
+      },
+      "DocumentResponseEx": {
+        "value": {
+          "code": 0,
+          "data": [
+            {
+              "dataId": 308,
+              "fileName": "data.pdf",
+              "status": "ONPROGRESS"
+            },
+            {
+              "dataId": 309,
+              "fileName": "data.pdf",
+              "status": "STAMP"
+            },
+            {
+              "dataId": 325,
+              "fileName": "20211101data-single.pdf",
+              "status": "DELETED"
+            },
+            {
+              "dataId": 326,
+              "fileName": "20211029data-series.pdf",
+              "status": "ONPROGRESS"
+            },
+            {
+              "dataId": 329,
+              "fileName": "20211104data-single.pdf",
+              "status": "COMPLETED"
+            },
+            {
+              "dataId": 374,
+              "fileName": "20211109data-paralel.pdf",
+              "status": "SEALED"
+            }
+          ],
+          "message": "Success"
+        }
       }
     },
     "schemas": {
@@ -772,55 +765,6 @@
           },
           "message": {
             "type": "string"
-          }
-        }
-      },
-      "Tag": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          }
-        }
-      },
-      "ApiResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "format": "int32",
-            "example": 200,
-            "description": "Response code"
-          },
-          "message": {
-            "type": "string",
-            "example": "Process Successful",
-            "description": "The response message"
-          }
-        }
-      },
-      "ApiResponseFail": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "format": "int32",
-            "example": 400,
-            "description": "Response code"
-          },
-          "dataId": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Response ID"
-          },
-          "message": {
-            "type": "string",
-            "example": "Process Unsuccessful",
-            "description": "The response message"
           }
         }
       },
@@ -860,59 +804,22 @@
           "name": "User"
         }
       },
-      "Token": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "token": {
-            "type": "string"
-          }
-        }
-      },
-      "QuotaResponse": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ApiResponse"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "data": {
-                "type": "object",
-                "description": "Response data",
-                "properties": {
-                  "companyName": {
-                    "type": "string",
-                    "description": "The company name"
-                  },
-                  "package": {
-                    "$ref": "#/components/schemas/Package"
-                  }
-                }
-              }
-            }
-          }
-        ]
-      },
       "Package": {
         "type": "object",
-        "description": "All information of your package",
+        "description": "Complete information about your package",
         "properties": {
           "name": {
             "type": "string",
-            "description": "The package name"
+            "description": "Package name"
           },
           "expired": {
             "type": "string",
             "format": "date",
-            "description": "The package expiration date"
+            "description": "Package expiration date"
           },
           "detail": {
             "type": "array",
-            "description": "The package details consist of its quotas",
+            "description": "Package details consist of the quota",
             "items": {
               "$ref": "#/components/schemas/Quota"
             }
@@ -927,20 +834,20 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "The quota name"
+            "description": "Quota name"
           },
           "quota": {
             "type": "string",
-            "description": "The remaining quota quantities"
+            "description": "Remaining quota quantity"
           }
         },
         "xml": {
           "name": "Quota"
         }
       },
-      "OTP": {
+      "Token": {
         "type": "object",
-        "description": "Consist of data that will be passed to Sign Document API",
+        "description": "Consist of token data required for OTP Process",
         "properties": {
           "token": {
             "type": "string",
@@ -950,111 +857,78 @@
           "dataId": {
             "type": "integer",
             "format": "int64",
-            "example": 1028440,
-            "description": "The document ID"
+            "example": 460,
+            "description": "Document ID"
           }
         }
+      },
+      "OTP": {
+        "type": "object",
+        "description": "The OTP Model required for authentication process.",
+        "properties": {
+          "dataId": {
+            "type": "string",
+            "description": "Document ID"
+          },
+          "otpCode": {
+            "type": "string",
+            "description": "The OTP code required for authentication"
+          },
+          "tokenCode": {
+            "type": "string",
+            "description": "The token code acquired from Get OTP API Response"
+          }
+        },
+        "required": [
+          "dataId",
+          "otpCode",
+          "tokenCode"
+        ]
       },
       "Document": {
         "type": "object",
+        "description": "The Document Model",
         "properties": {
-          "content": {
-            "type": "object",
-            "description": "The Document Model",
-            "properties": {
-              "filename": {
-                "type": "string",
-                "required": true,
-                "description": "The name of the file inputted. It is advised to include the file extension."
-              },
-              "base64doc": {
-                "type": "string",
-                "required": true,
-                "description": "The document contents encrypted into base64 format."
-              },
-              "signer": {
-                "$ref": "#/components/schemas/Signer",
-                "required": true
-              }
-            }
-          }
-        }
-      },
-      "MeteraiDocument": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Document"
+          "filename": {
+            "type": "string",
+            "description": "File input name. It is recommended to include the file extension."
           },
-          {
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "object",
-                "description": "Request Body Meterai Document",
-                "properties": {
-                  "noDoc": {
-                    "type": "integer",
-                    "format": "int32",
-                    "description": "Document number",
-                    "default": 1,
-                    "minimum": 1
-                  },
-                  "tglDoc": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "docpass": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
+          "base64doc": {
+            "type": "string",
+            "description": "The base64 format of the document."
+          },
+          "signer": {
+            "$ref": "#/components/schemas/Signer"
           }
+        },
+        "required": [
+          "filename",
+          "base64doc"
         ]
       },
-      "GetDocument": {
-        "description": "Response for Get Document",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ApiResponse"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "data": {
-                "type": "array",
-                "description": "List of all documents available related to your account",
-                "items": {
-                  "$ref": "#/components/schemas/DocumentFile"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "DocumentFile": {
+      "DocStatus": {
         "type": "object",
         "properties": {
           "dataId": {
             "type": "integer",
             "format": "int32",
-            "description": "The Document ID"
+            "description": "Document ID"
           },
           "fileName": {
             "type": "string",
             "example": "data.pdf",
-            "description": "The name of the file related with your account"
+            "description": "File name"
           },
           "status": {
             "type": "string",
             "example": "ONPROGRESS",
-            "description": "The status of the document"
+            "description": "Document status"
           }
         }
       },
       "Signer": {
         "type": "object",
-        "description": "Contains the coordinates of the signature on your document.",
+        "description": "Contains the coordinates of your document's Signature, e-Meterai, or Stamp element.",
         "properties": {
           "lowerLeftX": {
             "type": "string"
@@ -1074,31 +948,15 @@
           },
           "location": {
             "type": "string",
-            "description": "The City or Country where the process is running at."
-          },
-          "certificateLevel": {
-            "type": "string"
+            "description": "Location of the city where the signature, e-Meterai or stamp is placed."
           }
-        }
-      },
-      "DocumentTypeResponse": {
-        "description": "Response for Document Type",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ApiResponse"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "data": {
-                "type": "array",
-                "description": "List of all document types available",
-                "items": {
-                  "$ref": "#/components/schemas/DocumentType"
-                }
-              }
-            }
-          }
+        },
+        "required": [
+          "lowerLeftX",
+          "lowerLeftY",
+          "upperRightX",
+          "upperRightY",
+          "page"
         ]
       },
       "DocumentType": {
@@ -1106,11 +964,11 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The document type ID. This ID is required for Meterai Placement API."
+            "description": "Document type ID. This ID is required for the Meterai Placement API."
           },
           "nama": {
             "type": "string",
-            "description": "the document type name"
+            "description": "Document type name"
           }
         }
       }
@@ -1139,7 +997,7 @@
       "apiKeyParam": {
         "name": "apiKey",
         "in": "header",
-        "description": "API Key generated from dashboard. Each company has a unique API Key. Please do not use other company's API Key as it will lead to process failure.",
+        "description": "API key generated from the dashboard. Each company has a unique API Key. Please don't use other company's API Key as it will cause process failure.",
         "required": true,
         "schema": {
           "type": "string"
@@ -1165,6 +1023,66 @@
         }
       }
     },
+    "requestBodies": {
+      "SendDocument": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/Document"
+          }
+        }
+      },
+      "MeteraiDocument": {
+        "allOf": [
+          {
+            "$ref": "#/components/requestBodies/SendDocument"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "object",
+                "description": "Request Body Meterai Document",
+                "properties": {
+                  "noDoc": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "Document number. Defined by document content",
+                    "default": 1,
+                    "minimum": 1
+                  },
+                  "docpass": {
+                    "type": "string",
+                    "description": "Document password, if any"
+                  },
+                  "docType": {
+                    "type": "string",
+                    "description": "Document type ID acquired from Document Type API"
+                  }
+                },
+                "required": [
+                  "noDoc",
+                  "docpass",
+                  "docType"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "AskDataIDBody": {
+        "type": "object",
+        "properties": {
+          "dataId": {
+            "type": "string",
+            "description": "Document ID"
+          }
+        },
+        "required": [
+          "dataId"
+        ]
+      }
+    },
     "response": {
       "NotFound": {
         "description": "Entity not found."
@@ -1179,6 +1097,162 @@
             "schema": {
               "$ref": "#/components/schemas/GeneralError"
             }
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "example": 200,
+            "description": "Response code"
+          },
+          "message": {
+            "type": "string",
+            "example": "Process Successful",
+            "description": "The response message"
+          }
+        }
+      },
+      "ApiResponseDataId": {
+        "allOf": [
+          {
+            "$ref": "#/components/response/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "dataId": {
+                "type": "integer",
+                "format": "int32",
+                "description": "Response ID"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseFail": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "example": 400,
+            "description": "Response code"
+          },
+          "dataId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Response ID"
+          },
+          "message": {
+            "type": "string",
+            "example": "Process Unsuccessful",
+            "description": "The response message"
+          }
+        }
+      },
+      "QuotaResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/response/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "description": "Response data",
+                "properties": {
+                  "companyName": {
+                    "type": "string",
+                    "description": "The company name"
+                  },
+                  "package": {
+                    "$ref": "#/components/schemas/Package"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "GetDocumentResponse": {
+        "description": "Response for Get Document",
+        "allOf": [
+          {
+            "$ref": "#/components/response/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "description": "List of all available documents related to your account",
+                "items": {
+                  "$ref": "#/components/schemas/DocStatus"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "DocumentTypeResponse": {
+        "description": "Response for Document Type",
+        "allOf": [
+          {
+            "$ref": "#/components/response/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "description": "List of all available document types",
+                "items": {
+                  "$ref": "#/components/schemas/DocumentType"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "DownloadResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/response/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "description": "Response data",
+                "properties": {
+                  "base64document": {
+                    "type": "string",
+                    "description": "Received document in base64 format",
+                    "example": "JVBERi0xLjYKJeLjz9MKMiAwIG9iago8PC9Db2xvclNwYWNlL0RldmljZUdyYXkvU3VidHlwZS9JbWFnZS9IZWlnaH..."
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "OTPResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "example": 200,
+            "description": "Response code"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Token"
           }
         }
       }
