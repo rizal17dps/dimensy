@@ -39,6 +39,11 @@ Route::post('/sendDocumentSerial', '\App\Http\Controllers\Api\SendSerialControll
 Route::post('/setSignatureSerial', '\App\Http\Controllers\Api\SendSerialController@setSignature');
 Route::post('/signingSerial', '\App\Http\Controllers\Api\SendSerialController@signingSerial');
 
+//Paralel Sign
+Route::post('/sendDocumentParallel', '\App\Http\Controllers\Api\SendParallelController@sendDocument');
+Route::post('/setSignatureParallel', '\App\Http\Controllers\Api\SendParallelController@setSignature');
+Route::post('/signingParallel', '\App\Http\Controllers\Api\SendSerialController@signingParallel');
+
 //Register User
 Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerUser');
 Route::post('/verification', '\App\Http\Controllers\Api\RegisterController@verification');
