@@ -53,42 +53,28 @@
   ],
   "tags": [
     {
-      "name": "sign-stamp",
-      "x-displayName": "Sign/Stamp Process APIs"
+      "name": "sign",
+      "x-displayName": "Sign Process APIs",
+      "description": "All API signature placement process for Dimensy. The APIs are listed in the correct order. Please follow carefully."
     },
     {
       "name": "meterai",
-      "x-displayName": "Meterai Process APIs"
+      "x-displayName": "Meterai Process APIs",
+      "description": "All API e-meterai placement process for Dimensy. The APIs are listed in the correct order. Please follow carefully."
     },
     {
       "name": "commonProcess",
-      "x-displayName": "Common Process APIs"
-    },
-    {
-      "name": "document_model",
-      "x-displayName": "The Document Model",
-      "description": "<SchemaDefinition schemaRef=\"#/components/schemas/Document\" />\n"
-    },
-    {
-      "name": "package_model",
-      "x-displayName": "The Package Model",
-      "description": "<SchemaDefinition schemaRef=\"#/components/schemas/Package\" />\n"
+      "x-displayName": "Common Process APIs",
+      "description": "A collection of API utilities to improve user convenience."
     }
   ],
   "x-tagGroups": [
     {
       "name": "API",
       "tags": [
-        "sign-stamp",
+        "sign",
         "meterai",
         "commonProcess"
-      ]
-    },
-    {
-      "name": "Models",
-      "tags": [
-        "document_model",
-        "package_model"
       ]
     }
   ],
@@ -100,7 +86,7 @@
     "/api/sendDocument": {
       "post": {
         "tags": [
-          "sign-stamp"
+          "sign"
         ],
         "summary": "Send Document",
         "description": "Initiate the Signing or Stamping process by submitting documents and signature/stamp information.",
@@ -168,7 +154,7 @@
     "/api/getOtp": {
       "get": {
         "tags": [
-          "sign-stamp"
+          "sign"
         ],
         "summary": "Get OTP",
         "description": "Generate an OTP code and send it to your email and SMS.",
@@ -229,7 +215,7 @@
     "/api/signing": {
       "post": {
         "tags": [
-          "sign-stamp"
+          "sign"
         ],
         "summary": "Sign Document",
         "description": "Submit the authentication data required to complete document signing.",
