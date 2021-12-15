@@ -39,6 +39,12 @@ Route::post('/sendDocumentSerial', '\App\Http\Controllers\Api\SendSerialControll
 
 //Register User
 Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerUser');
+Route::post('/verification', '\App\Http\Controllers\Api\RegisterController@verification');
+
+//Create Speciment
+Route::post('/speciment', '\App\Http\Controllers\Api\SpecimentController@createSpeciment');
+//cek Certificate
+Route::post('/certificate', '\App\Http\Controllers\Api\SpecimentController@certificate');
 
 //cek quota
 Route::get('/quota', '\App\Http\Controllers\Api\QuotaController@cekQuota');

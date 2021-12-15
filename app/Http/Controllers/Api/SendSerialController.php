@@ -143,7 +143,7 @@ class SendSerialController extends Controller
                                 ]
                             ];
 
-                            $sendDoc = $digiSign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocumentTier/v1', $params);
+                            $sendDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocumentTier/v1', $params);
 
                             if($sendDoc["resultCode"] == 0){
                                 $dokSign = dokSign::where('dokumen_id', $request->input('idDok'))->first();
@@ -161,6 +161,100 @@ class SendSerialController extends Controller
                                 return response(['code' => 96, 'message' => $sendDoc['resultDesc']]);
                             }
                         }                        
+                        
+                    } else {
+                        DB::rollBack();
+                        return response(['code' => 97, 'message' => 'User Not Found']);
+                    }
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 96, 'message' => 'Email not register']);
+                }
+            }
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function setSignature(Request $request) {
+        DB::beginTransaction();
+        try{
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                
+                $request->validate([
+                    'setSignature' => 'required|array',
+                    'setSignature.dataId' => 'required',
+                    'setSignature.signer' => 'array|min:1',
+                    'setSignature.signer.lowerLeftX' => 'required',
+                    'setSignature.signer.lowerLeftY' => 'required',
+                    'setSignature.signer.upperRightX' => 'required',
+                    'setSignature.signer.upperRightY' => 'required',
+                    'setSignature.signer.page' => 'required',
+                    'setSignature.signer.location' => 'required'
+                ]);            
+
+                $user = User::where('email', $email)->where('is_active', 'true')->first();
+                if($user){
+                    if($user->company_id == $cekToken){
+                        
+                        if($this->utils->cekExpired($user->company->mapsCompany->expired_date)){
+                            return response(['code' => 95, 'message' => 'Your package has run out, please update your package']);
+                        }
+
+                        $map = MapCompany::with('paket', 'paket.maps')->where('company_id', $user->company_id)->first();
+                        $quotaSign = "";
+                        $quotaOtp = "";
+                        $quotaKeyla = "";
+
+                        foreach($map->paket->maps as $map){
+                            if($map->detail->type == 'sign'){
+                                $quotaSign = $map->detail->id;
+                            }
+                        }
+
+                        if($this->companyService->cek($quotaSign, $cekEmail->id)){
+                            DB::rollBack();
+                            return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                        }
+
+                        $params = [
+                            "requestSetSignature" => [
+                                "orderId" => $request->input('setSignature.dataId'),
+                                "signer"=>
+                                [
+                                    "isVisualSign"=> "YES",
+                                    "lowerLeftX"=> ''.$request->input('lowerLeftX').'',
+                                    "lowerLeftY"=> ''.$request->input('lowerLeftY').'',
+                                    "upperRightX"=> ''.$request->input('upperRightX').'',
+                                    "upperRightY"=> ''.$request->input('upperRightY').'',
+                                    "page"=> ''.$request->input('page').'',
+                                    "certificateLevel"=> "NOT_CERTIFIED",
+                                    "varLocation"=> ''.$request->input('location').'',
+                                    "varReason"=> "TTD"
+                                ],
+                                "systemId" => env('SYSTEMID')
+                            ]
+                        ];              
                         
                     } else {
                         DB::rollBack();

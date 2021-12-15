@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use DateTime;
+use Illuminate\Support\Facades\Crypt;
 
 class Utils
 {
@@ -27,5 +28,15 @@ class Utils
         } else {
             return false;
         }
+    }
+
+    public function enkrip($str)
+    {
+        return Crypt::encryptString($str);;
+    }
+
+    public function dekrip($str)
+    {
+        return Crypt::decryptString($str);;
     }
 }
