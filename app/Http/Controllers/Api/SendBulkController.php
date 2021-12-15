@@ -43,7 +43,8 @@ class SendBulkController extends Controller
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
-                DB::rollBack();
+                $this->utils->logBruteForce(\Request::ip(), $header, $email);
+                DB::commit();
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             }  else if(!$cekEmail){
                 DB::rollBack();
@@ -209,7 +210,8 @@ class SendBulkController extends Controller
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
-                DB::rollBack();
+                $this->utils->logBruteForce(\Request::ip(), $header, $email);
+                DB::commit();
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             } else if(!$cekEmail){
                 DB::rollBack();
@@ -295,7 +297,8 @@ class SendBulkController extends Controller
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
-                DB::rollBack();
+                $this->utils->logBruteForce(\Request::ip(), $header, $email);
+                DB::commit();
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             } else if(!$cekEmail){
                 DB::rollBack();

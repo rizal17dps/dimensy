@@ -4,6 +4,7 @@ namespace App\Services;
 
 use DateTime;
 use Illuminate\Support\Facades\Crypt;
+use App\Models\BruteModel;
 
 class Utils
 {
@@ -38,5 +39,18 @@ class Utils
     public function dekrip($str)
     {
         return Crypt::decryptString($str);;
+    }
+
+    public function logBruteForce($ip, $token, $email){
+        try{
+            $log = new BruteModel();
+            $log->ip_address = $ip;
+            $log->token = $token;
+            $log->email = $email;
+            $log->save();
+        } catch(\Exception $e) {
+            Log::error('Log Error '.$e->getMessage());
+            return true;
+        }
     }
 }
