@@ -239,4 +239,75 @@ class RegisterController extends Controller
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }  
     }
+
+    public function renewal(Request $request) {
+        try{
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }            
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::ip(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+
+                $englishNames = array(
+                    'base64video' => 'Video Stream'
+                );
+
+                $request->validate([
+                    'base64video' => ['required']
+                ], $englishNames);
+
+                $size = $this->utils->getBase64FileSize($request->input('base64video'));
+
+                if(str_replace(".", "", round($size, 3)) > 2048){
+                    return response(['code' => 95, 'message' => 'Upload Limit']);
+                }
+
+                $params = [
+                    "param" => [
+                            "email" => $cekEmail->email,
+                            "payload" => [
+                                "videoStream"=> $request->input('base64video'),
+                            ],                            
+                            "systemId"=>'PT-DPS'
+                    ]
+                ];  
+                
+                $regisEkyc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/videoVerificationForRenewal/v1', $params);
+
+                if($regisEkyc["resultCode"] == 0){
+                    $user = User::find($cekEmail->id);
+                    $user->isexpired = '0';
+                    $user->save();
+
+                    DB::commit();
+                    return response(['code' => 0, 'message' => 'Renewal Success']);
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 96, 'message' => $regisEkyc['resultDesc']]);
+                }                
+            }
+        } catch(\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response(['code' => 97, 'message' => $e->errors()]);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }  
+    }
 }

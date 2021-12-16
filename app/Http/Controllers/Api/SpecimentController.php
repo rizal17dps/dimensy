@@ -155,4 +155,100 @@ class SpecimentController extends Controller
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
     }
+
+    public function checkKeyla(Request $request) {
+        try{
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }            
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::ip(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $params = [
+                    "param" => [
+                            "systemId"=> 'PT-DPS',
+                            "email"=> $cekEmail->email,
+                    ]
+                ];   
+                
+                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaCheck/v1', $params);
+                if($crt["resultCode"] == "0"){
+                    DB::commit();
+                    return response(['code' => 0, 'message' => 'Successful']);
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 96, 'message' => $crt['resultDesc']]);
+                }
+            }
+        } catch(\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response(['code' => 97, 'message' => $e->errors()]);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function registerKeyla(Request $request) {
+        try{
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }            
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::ip(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $params = [
+                    "param" => [
+                            "systemId"=> 'PT-DPS',
+                            "email"=> $cekEmail->email,
+                    ]
+                ];   
+                
+                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaRegister/v1', $params);
+                if($crt["resultCode"] == "0"){
+                    DB::commit();
+                    return response(['code' => 0, 'message' => 'Successful', 'qrCode' => $crt["data"]["qrImage"]]);
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 96, 'message' => $crt['resultDesc']]);
+                }
+            }
+        } catch(\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response(['code' => 97, 'message' => $e->errors()]);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
 }

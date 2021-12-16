@@ -44,14 +44,20 @@ Route::post('/sendDocumentParallel', '\App\Http\Controllers\Api\SendParallelCont
 Route::post('/setSignatureParallel', '\App\Http\Controllers\Api\SendParallelController@setSignature');
 Route::post('/signingParallel', '\App\Http\Controllers\Api\SendSerialController@signingParallel');
 
+//Stamp
+Route::post('/sendStamp', '\App\Http\Controllers\Api\SendController@sendDocument');
+Route::post('/signingStamp', '\App\Http\Controllers\Api\SendController@signing');
+
 //Register User
 Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerUser');
 Route::post('/verification', '\App\Http\Controllers\Api\RegisterController@verification');
 
 //Create Speciment
 Route::post('/speciment', '\App\Http\Controllers\Api\SpecimentController@createSpeciment');
+
 //cek Certificate
 Route::post('/certificate', '\App\Http\Controllers\Api\SpecimentController@certificate');
+Route::post('/renewal', '\App\Http\Controllers\Api\RegisterController@renewal');
 
 //cek quota
 Route::get('/quota', '\App\Http\Controllers\Api\QuotaController@cekQuota');
@@ -59,3 +65,7 @@ Route::get('/quota', '\App\Http\Controllers\Api\QuotaController@cekQuota');
 //Meterai
 Route::get('/DocType', '\App\Http\Controllers\Api\MeteraiController@jenisDok');
 Route::post('/meteraiSigning', '\App\Http\Controllers\Api\MeteraiController@signingMeterai');
+
+//Check Keyla
+Route::post('/checkKeyla', '\App\Http\Controllers\Api\SpecimentController@checkKeyla');
+Route::post('/registerKeyla', '\App\Http\Controllers\Api\SpecimentController@registerKeyla');
