@@ -3,7 +3,7 @@ openapi: 3.0.0
 
 info:
   title: Dimensy API
-  version: '0.25'
+  version: '0.3'
   x-logo:
     url: "/../image/logo.svg"
     backgroundColor: "#FAFAFA"
@@ -40,14 +40,27 @@ servers:
       default: v1
 
 tags:
+  - name : register
+    x-displayName: Register Process APIs
+    description: All API required to Register in Dimensy.
   - name : sign
     x-displayName: Sign Process APIs
-    description: All API signature placement process for Dimensy.
+    description: "All API signature placement processes for Dimensy. There are 3 types of signature placement: Single, Serial, and Parallel.
+     The APIs are listed in the correct order. Please follow carefully."
+  - name : stamp
+    x-displayName: Stamp Process APIs
+    description: All API stamp placement processes for Dimensy.
      The APIs are listed in the correct order. Please follow carefully.
   - name : meterai
     x-displayName: Meterai Process APIs
-    description: All API e-meterai placement process for Dimensy.
+    description: All API e-meterai placement processes for Dimensy.
      The APIs are listed in the correct order. Please follow carefully.
+  - name : keyla
+    x-displayName: KEYLA APIs
+    description: All APIs regarding KEYLA information and activation.
+  - name : renewalCA
+    x-displayName: CA Renewal APIs
+    description: All APIs required to renew Certificate Authority (CA).
   - name : commonProcess
     x-displayName: Common Process APIs
     description: A collection of API utilities to improve user convenience.
@@ -55,8 +68,12 @@ tags:
 x-tagGroups:
   - name: API
     tags:
+      - register
       - sign
+      - stamp
       - meterai
+      - keyla
+      - renewalCA
       - commonProcess
 
 schemes:
@@ -64,12 +81,97 @@ schemes:
 - http
 
 paths:        
+  "/api/register":
+    post:
+      tags:
+      - register
+      summary: User Register
+      description: The registration process for new users on Dimensy.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/UserBody"
+            examples:
+              User 1:
+                $ref : "#/components/examples/bodyUserOne"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponse'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Registration Successful! Please check your email for activation process.
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/verification":
+    post:
+      tags:
+      - register
+      summary: Video Verification
+      description: The verification process for newly registered users on Dimensy.
+          Note that videos will be sent in base64 format without MIME and the system can only accept video formats with H.264 and WEBM codecs.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                base64video:
+                  type: string
+                  format: base64
+                  description: Video in base64 format. The system can only accept video formats with H.264 and WEBM codecs.
+            examples:
+              Video 1:
+                value:
+                  base64video: GkXfo59ChoEBQveBAULygQRC84EIQoKEd2Vib…
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponse'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: E-KYC Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
   "/api/sendDocument":
     post:
       tags :
       - sign
       summary: Send Document
-      description: Initiate the Signing or Stamping process by submitting documents and signature/stamp information.
+      description: Initiate the Signing process by submitting documents and signature information.
       parameters:
       - $ref: '#/components/parameters/apiKeyParam'
       - $ref: '#/components/parameters/emailParam'
@@ -104,47 +206,14 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/response/ApiResponseFail"
-  "/api/getOtp":
-    get:
-      tags :
-      - sign
-      summary: Get OTP
-      description: Generate an OTP code and send it to your email and SMS.
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      parameters:
-      - $ref: '#/components/parameters/apiKeyParam'
-      - $ref: '#/components/parameters/emailParam'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/requestBodies/AskDataIDBody'
-            examples:
-              Sign ID:
-                value:
-                  dataId: '460'
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/response/OTPResponse'
-        '400':
-          description: unsuccessful operation
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/response/ApiResponseFail"
   "/api/signing":
     post:
       tags :
       - sign
       summary: Sign Document
-      description: Submit the authentication data required to complete document signing.
+      operationId : signing
+      description: Submit the authentication data required to complete document signing. 
+        To run this API, The <a href='/#operation/getOtp'>OTP API</a> needs to be executed first.
       consumes:
       - application/json
       produces:
@@ -176,6 +245,482 @@ paths:
                     code: 0
                     message: Success
                     dataId: 460
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/sendDocumentSerial":
+    post:
+      tags :
+      - sign
+      summary: Send Serial Document
+      description: Initiate the Serial Signing process by submitting documents and signers information.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/SendSerialDocument"
+            examples:
+              Send1:
+                $ref : "#/components/examples/bodySendSerial"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    dataId: 460
+                    message: Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/setSignatureSerial":
+    post:
+      tags :
+      - sign
+      summary: Set Serial Sign Document
+      description: Set the sign coordinates for serial signing in Dimensy.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/SetSignatureBody"
+            examples:
+              Send1:
+                $ref : "#/components/examples/bodySetSignature"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    dataId: 460
+                    message: Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/signingSerial":
+    post:
+      tags :
+      - sign
+      summary: Sign Serial Document
+      operationId : signingSerial
+      description: Submit the authentication data required to complete document signing.
+        To run this API, The <a href='/#operation/getOtp'>OTP API</a> needs to be executed first.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTP'
+            examples:
+              First:
+                value:
+                  dataId: '460'
+                  otpCode: "142289"
+                  tokenCode:  "84a634929cd04784ac7ac5c158f26a53"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Success
+                    dataId: 460
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/sendDocumentParalel":
+    post:
+      tags :
+      - sign
+      summary: Send Paralel Document
+      description: Initiate the Paralel Signing process by submitting documents and signers information.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/SendSerialDocument"
+            examples:
+              Send1:
+                $ref : "#/components/examples/bodySendSerial"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    dataId: 460
+                    message: Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/setSignatureParalel":
+    post:
+      tags :
+      - sign
+      summary: Set Paralel Sign Document
+      description: Set the sign coordinates for paralel signing in Dimensy.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/SetSignatureBody"
+            examples:
+              Send1:
+                $ref : "#/components/examples/bodySetSignature"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    dataId: 460
+                    message: Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/signingParalel":
+    post:
+      tags :
+      - sign
+      summary: Sign Paralel Document
+      operationId : signingParalel
+      description: Submit the authentication data required to complete document signing.
+        To run this API, The <a href='/#operation/getOtp'>OTP API</a> needs to be executed first.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTP'
+            examples:
+              First:
+                value:
+                  dataId: '460'
+                  otpCode: "142289"
+                  tokenCode:  "84a634929cd04784ac7ac5c158f26a53"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Success
+                    dataId: 460
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/sendStamp":
+    post:
+      tags :
+      - stamp
+      summary: Send Stamp
+      description: Initiate the Stamping process by submitting documents and stamp information.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/SendStamp"
+            examples:
+              Send1:
+                $ref : "#/components/examples/bodySend"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    dataId: 460
+                    message: Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/signingStamp":
+    post:
+      tags :
+      - stamp
+      summary: Stamp Document
+      operationId : stamping
+      description: Submit the authentication data required to complete document stamping.
+        To run this API, The <a href='/#operation/getOtp'>OTP API</a> needs to be executed first.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTP'
+            examples:
+              First:
+                value:
+                  dataId: '460'
+                  otpCode: "142289"
+                  tokenCode:  "84a634929cd04784ac7ac5c158f26a53"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponseDataId'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Success
+                    dataId: 460
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/checkKeyla":
+    get:
+      tags:
+      - keyla
+      summary: Check KEYLA
+      description: Check if the user is registered in the KEYLA system.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponse'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Success
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/registerKeyla":
+    get:
+      tags:
+      - keyla
+      summary: Register KEYLA
+      description: Register the active user in the KEYLA system.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/KeylaResponse'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Success
+                    qrCode: JVBERi0xLjYKJeLjz9MKMiAwIG9iago8PC9Db2xvclNwYWNlL0RldmljZUdyYXkvU3VidHlwZS9JbWFnZS9IZWlnaH...
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/certificate":
+    get:
+      tags :
+      - renewalCA
+      summary: Check CA
+      description: check your CA's valid time.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'  
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref : '#/components/response/CertificateResponse'
+              examples:
+                Not expired:
+                  value:
+                    code: 0
+                    data:
+                      isExpired: "Certificate validity period >= 30 days"
+                    message: Success
+                  
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/renewal":
+    post:
+      tags:
+      - renewalCA
+      summary: CA Renewal
+      description: Verification process to renew your CA in Dimensy.
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                base64video:
+                  type: string
+                  format: base64
+            examples:
+              Video 1:
+                value:
+                  base64video: GkXfo59ChoEBQveBAULygQRC84EIQoKEd2Vib…
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/ApiResponse'
+              examples:
+                Success:
+                  value:
+                    code: 0
+                    message: Renewal Success
         '400':
           description: unsuccessful operation
           content:
@@ -242,6 +787,49 @@ paths:
                 code: 0
                 dataId : 491
                 message: 'Success'
+        '400':
+          description: unsuccessful operation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/response/ApiResponseFail"
+  "/api/getOtp":
+    get:
+      tags :
+      - commonProcess
+      summary: Get OTP
+      operationId: getOtp
+      description: "Generate an OTP code and send it to your email and SMS.
+        After OTP, user can execute one of the signing process below in accordance to the ongoing process:
+        <ul>
+          <li><a href='/#operation/signing'>Single Signing</a></li>
+          <li><a href='/#operation/signingSerial'>Serial Signing</a></li>
+          <li><a href='/#operation/signingParalel'>Paralel Signing</a></li>
+          <li><a href='/#operation/stamping'>Stamping</a></li>
+        </ul>"
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - $ref: '#/components/parameters/apiKeyParam'
+      - $ref: '#/components/parameters/emailParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/requestBodies/AskDataIDBody'
+            examples:
+              Sign ID:
+                value:
+                  dataId: '460'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/response/OTPResponse'
         '400':
           description: unsuccessful operation
           content:
@@ -356,6 +944,29 @@ paths:
 
 components:
   examples:
+    bodyUserOne:
+      value:
+        name: User
+        nik: '3171231234533456'
+        npwp: ''
+        pob: Jakarta
+        dob: '1990-12-13'
+        phone: '0822123329999'
+        address: Jalan Haji Sulaiman nomor 90
+        city: Jakarta Timur
+        prov: DKI Jakarta
+        email: silver8@yopmail.com
+        password: P@ssw0rd
+        fotoKtp: "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAA.."
+        fotoNpwp: "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAA.."
+    bodySendSerial:
+      value:
+        content:
+          filename: cobaApiSerial.pdf
+          base64Doc: JVBERi0xLjcKJaGzxdcKMSAwIG9iago8PC9OYW1lczw8...
+          signer:
+          - emailSigner: pic.silver@yopmail.com
+          - emailSigner: keuangan.silver@yopmail.com
     bodySend:
       summary: Contoh Body
       value:
@@ -465,6 +1076,19 @@ components:
           fileName: 20211109data-paralel.pdf
           status: SEALED
         message: Success
+    bodySetSignature:
+      value:
+        setSignature:
+          dataId: '654'
+          signers:
+          - lowerLeftX: '307'
+            lowerLeftY: '23'
+            upperRightX: '377'
+            upperRightY: '41'
+            page: '1'
+            location: Jakarta
+
+
 
   schemas:
     GeneralError:
@@ -476,30 +1100,15 @@ components:
         message:
           type: string
     User:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        username:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        password:
-          type: string
-          format: password
-        phone:
-          type: string
-        userStatus:
-          type: integer
-          format: int32
-          description: User Status
-      xml:
-        name: User
+      allOf: 
+      - $ref: '#/components/requestBodies/UserBody'
+      - type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+        xml:
+          name: User
     Package:
       type: object
       description: Complete information about your package
@@ -566,14 +1175,15 @@ components:
         filename:
           type: string
           description: File input name. It is recommended to include the file extension.
-        base64doc:
+        base64Doc:
           type: string
+          format: base64
           description: The base64 format of the document.
         signer:
           "$ref": "#/components/schemas/Signer"
       required:
       - filename
-      - base64doc
+      - base64Doc
     DocStatus:
       type: object
       properties:
@@ -702,9 +1312,120 @@ components:
           description: Document ID
       required:
       - dataId
-      
+    UserBody:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Full name
+        nik:
+          type: string
+          minLength: 16
+          maxLength: 16 
+          description: National ID number/KTP number
+        npwp:
+          type: string
+          minLength: 15
+          maxLength: 15
+          description: NPWP Number
+        pob:
+          type: string
+          description: Place of Birth
+        dob:
+          type: string
+          format: date
+          description: Date of Birth. Please use the YYYY-MM-DD format
+        phone:
+          type: string
+          minLength: 9
+          maxLength: 13
+          description: Phone number
+        address:
+          type: string
+          description: Home Address
+        city:
+          type: string
+          description: City related to the address
+        prov:
+          type: string
+          description: Province related to the address
+        email:
+          type: string
+          description: New user's email
+        password:
+          type: string
+          description: New user's password. A password must have at least one digit number, one digit uppercase and contain at least this !@#$%^&* character.
+        fotoKtp:
+          type: string
+          format: base64
+          description: Picture of the new user's KTP/ID card
+        fotoNpwp:
+          type: string
+          format: base64
+          description: Picture of the new user's NPWP card
+      required:
+      - name
+      - nik
+      - pob
+      - dob
+      - phone
+      - address
+      - city
+      - prov
+      - email
+      - password
+      - fotoKtp
+    SendSerialDocument:
+      type: object
+      properties:
+        content:
+          type: object
+          properties:
+            filename:
+              type: string
+              description: File input name. It is recommended to include the file extension.
+            base64Doc:
+              type: string
+              format: base64
+              description: The base64 format of the document.
+            signers:
+              type: array
+              description: List of the signer's emails
+              items:
+                type: object
+                properties:
+                  emailSigner:
+                    type: string
+                    description: The signer's email
+    SetSignatureBody:
+      type: object
+      properties:
+        setSignature:
+          type: object
+          properties:
+            dataId:
+              type: integer
+              format: int32
+              description: Response ID
+            signers:
+              type: array
+              items:
+                $ref: '#/components/schemas/Signer'
+    SendStamp:
+      type: object
+      properties:
+        content:
+          allOf:
+          - $ref: "#/components/schemas/Document"
+          - type: object
+            properties:
+              signer:
+                type: object
+                properties:
+                  reason:
+                    type: string
+                    description: The user's needs by stamping this document
 
-    
   response:
     NotFound:
       description: Entity not found.
@@ -800,6 +1521,7 @@ components:
             properties:
               base64document:
                 type: string
+                format: base64
                 description: Received document in base64 format
                 example: JVBERi0xLjYKJeLjz9MKMiAwIG9iago8PC9Db2xvclNwYWNlL0RldmljZUdyYXkvU3VidHlwZS9JbWFnZS9IZWlnaH...
     OTPResponse:
@@ -812,6 +1534,28 @@ components:
           description: Response code
         data:
           "$ref": "#/components/schemas/Token"
+    CertificateResponse:
+      allOf:
+      - "$ref": "#/components/response/ApiResponse" 
+      - type : object
+        properties:
+          data:
+            type: object
+            description: Response data
+            properties:
+              isExpired:
+                type: string
+                description: Information on your CA validity period          
+    KeylaResponse:
+      allOf:
+      - "$ref": "#/components/response/ApiResponse" 
+      - type : object
+        properties:
+          qrCode:
+            type: string
+            format: base64
+            description: Received QR Code in base64 format
+            example: JVBERi0xLjYKJeLjz9MKMiAwIG9iago8PC9Db2xvclNwYWNlL0RldmljZUdyYXkvU3VidHlwZS9JbWFnZS9IZWlnaH...
 
   # securitySchemes:
   #   api_key:
