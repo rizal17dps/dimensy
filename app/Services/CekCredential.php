@@ -10,6 +10,7 @@ class CekCredential
     public function cekToken($token)
     {
         $auth = AuthClientModel::where('token', $token)->first();
+        dd($auth);
         if($auth){
             return $auth->company_id;
         } else {
