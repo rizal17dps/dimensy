@@ -5,6 +5,7 @@ namespace App\Services;
 use DateTime;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\BruteModel;
+use Illuminate\Support\Facades\Log;
 
 class Utils
 {
