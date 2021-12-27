@@ -26,6 +26,7 @@ class RegisterController extends Controller
     }
 
     public function registerUser(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
@@ -171,6 +172,7 @@ class RegisterController extends Controller
     }
 
     public function verification(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
@@ -241,6 +243,7 @@ class RegisterController extends Controller
     }
 
     public function renewal(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');

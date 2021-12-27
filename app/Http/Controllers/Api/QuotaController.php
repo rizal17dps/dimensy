@@ -18,6 +18,7 @@ class QuotaController extends Controller
     }
 
     public function cekQuota(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');

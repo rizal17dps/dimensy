@@ -27,6 +27,7 @@ class MeteraiController extends Controller
     }
 
     public function jenisDok(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
@@ -66,6 +67,7 @@ class MeteraiController extends Controller
     }
 
     public function signingMeterai(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
@@ -235,5 +237,107 @@ class MeteraiController extends Controller
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }  
+    }
+
+    public function generateSN(Request $request) {
+        DB::beginTransaction();
+        try{
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                DB::commit();
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::ip(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                if($this->utils->cekExpired($cekEmail->company->mapsCompany->expired_date)){
+                    return response(['code' => 95, 'message' => 'Your package has run out, please update your package']);
+                }
+
+                $map = MapCompany::with('paket', 'paket.maps')->where('company_id', $cekEmail->company_id)->first();
+                $quotaMeterai = "";
+
+                foreach($map->paket->maps as $map){
+                    if($map->detail->type == 'materai'){
+                        $quotaMeterai = $map->detail->id;
+                    }
+                }
+
+                if($this->companyService->cek($quotaMeterai, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
+                $request->validate([
+                    'content' => 'required|array',
+                    'content.namafile' => 'required',
+                    'content.docType' => 'required'
+                ]);
+
+                $docType = DB::table('jenis_dokumen')->find($request->input('content.docType'));
+
+                $user = User::where('email', $email)->first();
+                if($user){
+                    
+                    $params = [
+                        "namadoc"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                        "nodoc"=> "",
+                        "tgldoc"=> date("Y-m-d"),
+                        "namejidentitas" => "KTP",
+                        "noidentitas" => $user->nik,
+                        "namedipungut" => $user->name,
+                        "nilaidoc"=> "10000",
+                        "namafile"=> $request->input('content.docType'),
+                        "snOnly"=> false,
+                        "isUpload"=> false                     
+                    ];
+
+                    $serialNumber = $this->meterai->callAPI('chanel/stampv2', $params, 'stamp', 'POST');
+            
+                    if($serialNumber["statusCode"] == "00"){
+                        $image_base64 = base64_decode($serialNumber["result"]["image"]);
+                        $fileName = $serialNumber["result"]["sn"].'.png';
+                        Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/meterai/'.$fileName, $image_base64);
+                                
+                        $meterai = new Meterai();
+                        $meterai->serial_number = $serialNumber["result"]["sn"];
+                        $meterai->path = $user->company_id .'/dok/'.$user->id.'/meterai/'.$fileName;
+                        $meterai->status = 0;
+                        $meterai->company_id = $user->company_id;
+                        $meterai->created_at = date("Y-m-d H:i:s");
+                        $meterai->save();
+
+                        if(!$this->companyService->history($quotaMeterai, $cekEmail->id)){
+                            DB::rollBack();
+                            return response(['code' => 98, 'message' => 'Error create History']);
+                        }
+                        
+                        DB::commit();
+                        return response(['code' => 0 ,'result' => $serialNumber["result"], 'message' =>'Success']);
+                    }
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'Email Not Found']);
+                }                
+            }            
+        } catch(\Illuminate\Validation\ValidationException $e) {
+            return response(['code' => 99, 'message' => $e->errors()]);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }               
     }
 }

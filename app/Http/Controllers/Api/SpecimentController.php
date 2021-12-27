@@ -24,6 +24,7 @@ class SpecimentController extends Controller
     }
 
     public function createSpeciment(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
@@ -99,6 +100,7 @@ class SpecimentController extends Controller
     }
 
     public function certificate(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
@@ -157,6 +159,7 @@ class SpecimentController extends Controller
     }
 
     public function checkKeyla(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
@@ -205,6 +208,7 @@ class SpecimentController extends Controller
     }
 
     public function registerKeyla(Request $request) {
+        DB::beginTransaction();
         try{
             $header = $request->header('apiKey');
             $email = $request->header('email');
