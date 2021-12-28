@@ -108,11 +108,11 @@ class SignService
                 }
             }
             
-            //$this->logError(\Request::ip(), $uri, json_encode($params), json_encode($x) , 'HASIL');
+            //$this->logError(\Request::getClientIp(), $uri, json_encode($params), json_encode($x) , 'HASIL');
             
             return $x;
         } catch (\Exception $e) {
-            //$this->logError(\Request::ip(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
+            //$this->logError(\Request::getClientIp(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
             return $e->getMessage();
         }
     }

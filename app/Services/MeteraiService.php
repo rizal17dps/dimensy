@@ -101,7 +101,7 @@ class MeteraiService
             }
             return $x;
         } catch (\Exception $e) {
-            //$this->logError(\Request::ip(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
+            //$this->logError(\Request::getClientIp(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
             return $e->getMessage();
         }
     }
