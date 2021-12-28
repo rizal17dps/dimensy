@@ -6,6 +6,7 @@ use DateTime;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\BruteModel;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class Utils
 {

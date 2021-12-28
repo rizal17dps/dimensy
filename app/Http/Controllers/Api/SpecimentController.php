@@ -26,6 +26,10 @@ class SpecimentController extends Controller
     public function createSpeciment(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -102,6 +106,10 @@ class SpecimentController extends Controller
     public function certificate(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -161,6 +169,10 @@ class SpecimentController extends Controller
     public function checkKeyla(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -210,6 +222,10 @@ class SpecimentController extends Controller
     public function registerKeyla(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 

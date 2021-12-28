@@ -29,6 +29,10 @@ class SendBulkController extends Controller
     public function sendDocument(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -196,6 +200,10 @@ class SendBulkController extends Controller
     public function getOtp(Request $request){
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -283,6 +291,10 @@ class SendBulkController extends Controller
     public function signing(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 

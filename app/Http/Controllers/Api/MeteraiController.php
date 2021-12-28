@@ -73,6 +73,10 @@ class MeteraiController extends Controller
     public function signingMeterai(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -246,6 +250,10 @@ class MeteraiController extends Controller
     public function generateSN(Request $request) {
         DB::beginTransaction();
         try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
