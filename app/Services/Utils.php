@@ -54,4 +54,21 @@ class Utils
             return true;
         }
     }
+
+    public function block() {
+        $ip = \Request::getClientIp();
+        $count = BruteModel::where("created_at", ">=", date("Y-m-d H:i:s", strtotime("-1 hours")))->where("ip_address", $ip)->get();
+        if($count->count() >= 10){
+            return true;
+        } else {
+            $cek = DB::select("SELECT count(*) FROM brute_force WHERE created_at BETWEEN 
+                                (SELECT MAX(created_at) FROM brute_force WHERE ip_address = '".$ip."') - INTERVAL '24 HOURS' 
+                                AND (SELECT MAX(created_at) FROM brute_force WHERE ip_address = '".$ip."') + INTERVAL '24 HOURS' AND ip_address ='".$ip."'");
+            if(empty($cek) || $cek[0]->count <= 10){
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
 }
