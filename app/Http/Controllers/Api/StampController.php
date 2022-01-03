@@ -353,7 +353,7 @@ class StampController extends Controller
                             if($viewDoc["resultCode"] == "0"){
                                 $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);
                                 $fileName = 'SIGNED_'.time().'_'.$doks->realname;
-                                Storage::disk('minio')->put($doks->user->company_id .'/dok/'.$doks->users_id.'/ttd/'.$fileName, $image_base64);    
+                                Storage::disk('minio')->put($doks->user->company_id .'/dok/'.$doks->users_id.'/stamp/'.$fileName, $image_base64);    
                                 
                                 $dokSign->name = $fileName;
                                 $dokSign->status = 'Stamp';

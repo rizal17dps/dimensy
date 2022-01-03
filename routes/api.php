@@ -45,8 +45,8 @@ Route::post('/setSignatureParallel', '\App\Http\Controllers\Api\SendParallelCont
 Route::post('/signingParallel', '\App\Http\Controllers\Api\SendSerialController@signingParallel');
 
 //Stamp
-Route::post('/sendStamp', '\App\Http\Controllers\Api\SendController@sendDocument');
-Route::post('/signingStamp', '\App\Http\Controllers\Api\SendController@signing');
+Route::post('/sendStamp', '\App\Http\Controllers\Api\StampController@sendStamp');
+Route::post('/signingStamp', '\App\Http\Controllers\Api\StampController@signing');
 
 //Register User
 Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerUser');
