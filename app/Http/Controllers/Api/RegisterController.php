@@ -220,26 +220,40 @@ class RegisterController extends Controller
 
                 $params = [
                     "param" => [
-                            "email" => $cekEmail->email,
-                            "videoStream"=> $request->input('base64video'),
-                            "systemId"=>'PT-DPS'
+                            "email" => $user->email,
+                            "systemId"=>"PT-DPS"
                     ]
-                ];  
+                ];   
                 
-                $regisEkyc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/videoVerification/v1', $params);
-
-                if($regisEkyc["resultCode"] == 0){
-                    $user = User::find($cekEmail->id);
-                    $user->email_verified_at = date('Y-m-d h:i:s');
-                    $user->isexpired = '0';
-                    $user->save();
-
-                    DB::commit();
-                    return response(['code' => 0, 'message' => 'E-KYC Success']);
-                } else {
+                $regis = $digiSign->callAPI('digitalSignatureFullJwtSandbox/1.0/checkCertificate/v1', $params);
+                $done = 0;
+                if($regis["resultCode"] == "0"){
                     DB::rollBack();
-                    return response(['code' => 96, 'message' => $regisEkyc['resultDesc']]);
-                }                
+                    return response(['code' => 96, 'message' => 'The user already has a certificate']);
+                } else {
+                    $params = [
+                        "param" => [
+                                "email" => $cekEmail->email,
+                                "videoStream"=> $request->input('base64video'),
+                                "systemId"=>'PT-DPS'
+                        ]
+                    ];  
+                    
+                    $regisEkyc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/videoVerification/v1', $params);
+    
+                    if($regisEkyc["resultCode"] == 0){
+                        $user = User::find($cekEmail->id);
+                        $user->email_verified_at = date('Y-m-d h:i:s');
+                        $user->isexpired = '0';
+                        $user->save();
+    
+                        DB::commit();
+                        return response(['code' => 0, 'message' => 'E-KYC Success']);
+                    } else {
+                        DB::rollBack();
+                        return response(['code' => 96, 'message' => $regisEkyc['resultDesc']]);
+                    }
+                }                                
             }
         } catch(\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();

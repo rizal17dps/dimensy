@@ -66,7 +66,7 @@ class SendBulkController extends Controller
                     'content.signer.*.upperRightX' => 'required',
                     'content.signer.*.upperRightY' => 'required',
                     'content.signer.*.page' => 'required|numeric',
-                    'content.signer.*.location' => 'string|regex:/^[a-zA-Z]+$/u',
+                    'content.signer.*.location' => 'required|string|regex:/^[a-zA-Z]+$/u',
                 ]);            
 
                 $user = User::where('email', $email)->where('is_active', 'true')->first();
