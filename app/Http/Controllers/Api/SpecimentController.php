@@ -271,4 +271,120 @@ class SpecimentController extends Controller
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
     }
+
+    public function verifKeyla(Request $request) {
+        DB::beginTransaction();
+        try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }            
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $request->validate([
+                    'token' => ['required']
+                ]);
+
+                $params = [
+                    "param" => [
+                            "systemId"=> 'PT-DPS',
+                            "email"=> $cekEmail->email,
+                            "token"=> $request->input('token'),
+                    ]
+                ];   
+                
+                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaVerify/v1', $params);
+                if($crt["resultCode"] == "0"){
+                    DB::commit();
+                    return response(['code' => 0, 'message' => 'Successful']);
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 96, 'message' => $crt['resultDesc']]);
+                }
+            }
+        } catch(\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response(['code' => 97, 'message' => $e->errors()]);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function unregisterKeyla(Request $request) {
+        DB::beginTransaction();
+        try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }            
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $request->validate([
+                    'qrImage' => ['required']
+                ]);
+
+                $params = [
+                    "param" => [
+                            "systemId"=> 'PT-DPS',
+                            "email"=> $cekEmail->email,
+                            "qrImage"=> $request->input('qrImage'),
+                    ]
+                ];   
+                
+                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaDeregister/v1', $params);
+                if($crt["resultCode"] == "0"){
+                    DB::commit();
+                    return response(['code' => 0, 'message' => 'Successful']);
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 96, 'message' => $crt['resultDesc']]);
+                }
+            }
+        } catch(\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response(['code' => 97, 'message' => $e->errors()]);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
 }

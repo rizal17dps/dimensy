@@ -70,3 +70,5 @@ Route::post('/generateSN', '\App\Http\Controllers\Api\MeteraiController@generate
 //Check Keyla
 Route::post('/checkKeyla', '\App\Http\Controllers\Api\SpecimentController@checkKeyla');
 Route::post('/registerKeyla', '\App\Http\Controllers\Api\SpecimentController@registerKeyla');
+Route::post('/verifKeyla', '\App\Http\Controllers\Api\SpecimentController@verifKeyla');
+Route::post('/unregisterKeyla', '\App\Http\Controllers\Api\SpecimentController@unregisterKeyla');
