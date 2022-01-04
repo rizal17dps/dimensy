@@ -438,15 +438,65 @@ class SendSerialController extends Controller
                         return response(['code' => 96, 'message' => $sign["resultDesc"]]);
                     }
                 } else if($sign["resultCode"] == "0" && isset($sign["data"]["orderIdNextSigner"])) { 
-                    $dokSign->orderId = $viewDoc["data"]["orderIdNextSigner"];
-                    $dokSign->save();
+                    $params = [
+                        "param" => 
+                        [
+                            "systemId" => "PT-DPS",
+                            "orderId" => ''.$dokSign->orderId.'',
+                        ]
+                    ];
+                    
+                    $sukses = false;
+                    set_time_limit(300);
+                    for($i = 1; $i<=3; $i++){
+                        $download = $digiSign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
 
-                    $dok = Sign::find($dokSign->dokumen_id);
-                    $dok->step = $dok->step + 1;
-                    $dok->save();
+                        if($download["resultCode"] == "0" || !isset($download["resultCode"])){
+                            $image_base64 = base64_decode($download["data"]["base64Document"]);
+                            $fileName = 'SIGNED_'.time().'_'.$doks->realname;
+                            Storage::disk('minio')->put($doks->user->company_id .'/dok/'.$doks->users_id.'/'.$fileName, $image_base64);    
+                            
+                            $doks->name = $fileName;        
+                                
+                            $doks->save();
+        
+                            $cekSign = ListSigner::where('dokumen_id', $doks->id)->where('users_id', auth()->user()->id)->whereNull('isSign')->first();
+                            
+                            if($cekSign){
+                                $cekSign->isSign = '1';
+                                $cekSign->save();
+                            }                    
+            
+                            DB::commit();
+                            $sukses = true;
+                            
+                        }
+                    }
 
-                    DB::commit();
-                    return response(['code' => 0, 'message' => 'Success', 'NextDataId'=>$dok->id]);
+                    if($sukses){
+                        if($doks->tipe == 2){
+                            $dokSign->orderId = $viewDoc["data"]["orderIdNextSigner"];
+                            $dokSign->save();
+
+                            $dok = Sign::find($dokSign->dokumen_id);
+                            $dok->step = $dok->step + 1;
+                            $dok->save();
+                        }
+
+                        DB::commit();
+                        return response(['code' => 0, 'message' => 'Success', 'NextDataId'=>$dok->id]);
+                    } else {
+                        $tmp = new TmpModel();
+                        $tmp->dokumen_id = $doks->id;
+                        $tmp->status = 0;
+                        $tmp->save();
+
+                        DB::rollback();
+                        return response()->json(['success'=>false, 'msg'=>$viewDoc["resultDesc"]]);
+                    }
+                    
+
+                    
                 } else {
                     DB::rollBack();
                     return response(['code' => 97, 'message' => 'Document not found']);

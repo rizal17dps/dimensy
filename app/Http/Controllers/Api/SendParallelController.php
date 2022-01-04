@@ -448,15 +448,52 @@ class SendParallelController extends Controller
                                 //return back()->withError('Failed to generate '.$viewDoc['resultDesc']);
                             }  
                         } else {
-                            $cekSign = ListSigner::where('dokumen_id', $doks->id)->where('users_id', auth()->user()->id)->whereNull('isSign')->first();
+                            $params = [
+                                "param" => 
+                                [
+                                    "systemId" => "PT-DPS",
+                                    "orderId" => ''.$dokSign->orderId.'',
+                                ]
+                            ];
                             
-                            if($cekSign){
-                                $cekSign->isSign = '1';
-                                $cekSign->save();
-                                DB::commit();
+                            $sukses = false;
+                            set_time_limit(300);
+                            for($i = 1; $i<=3; $i++){
+                                $viewDoc = $digiSign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
+                                
+                                if($viewDoc["resultCode"] == "0" || !isset($viewDoc["resultCode"])){
+                                    $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);
+                                    $fileName = 'SIGNED_'.time().'_'.$doks->realname;
+                                    Storage::disk('minio')->put($doks->user->company_id .'/dok/'.$doks->users_id.'/'.$fileName, $image_base64);    
+                                    
+                                    $doks->name = $fileName;        
+                                    
+                                    $doks->save();
+                
+                                    $cekSign = ListSigner::where('dokumen_id', $doks->id)->where('users_id', auth()->user()->id)->whereNull('isSign')->first();
+                                    
+                                    if($cekSign){
+                                        $cekSign->isSign = '1';
+                                        $cekSign->save();
+                                    }                    
+                    
+                                    $sukses = true;
+                                    
+                                }
                             }
-
-                            return response(['code' => 0, 'message' => 'Success', 'dataId'=>$doks->id]);
+        
+                            if($sukses){
+                                DB::commit();
+                                return response(['code' => 0, 'message' => 'Success', 'dataId'=>$doks->id]);
+                            } else {
+                                $tmp = new TmpModel();
+                                $tmp->dokumen_id = $doks->id;
+                                $tmp->status = 0;
+                                $tmp->save();
+        
+                                DB::commit();
+                                return response()->json(['code'=>'96', 'message'=>$viewDoc['resultDesc']]);
+                            }
                         }                                           
                         
                     } else {
