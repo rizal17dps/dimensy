@@ -543,7 +543,7 @@ class SendController extends Controller
                             return response(['code' => 96, 'message' => 'Document not found']);
                         }                  
                     } else if ($dok->status_id == 6) {
-                        $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Signed')->first();
+                        $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Stamp')->first();
                         if($dokSign){
                             $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/stamp/' . $dokSign->name));
                             return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
