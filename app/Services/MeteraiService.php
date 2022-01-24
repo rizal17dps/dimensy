@@ -80,8 +80,8 @@ class MeteraiService
         return $this->getResponse(
                 'api/users/login',
                 [
-                    "user" => "almufadhdhal@gmail.com",
-                    "password" => "qwerty123",
+                    "user" => "dev@dimensy.id",
+                    "password" => "P@ssw0rd",
                 ]
             );
       
