@@ -134,6 +134,15 @@ class RegisterController extends Controller
                     throw new \Exception('Error Create History Pemakaian', 500);
                 }
 
+                $paramsCheck = [
+                    "param" => [
+                            "email" => $user->email, //aslinya $user->email
+                            "systemId"=>"PT-DPS"
+                    ]
+                ];
+                
+                $accCheck = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/checkCertificate/v1', $paramsCheck);
+
                 $date=date_create($user->tanggal_lahir);
                 $params = [
                     "param" => [
