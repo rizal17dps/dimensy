@@ -229,7 +229,7 @@ class RegisterController extends Controller
 
                 $params = [
                     "param" => [
-                            "email" => $user->email,
+                            "email" => $cekEmail->email,
                             "systemId"=>"PT-DPS"
                     ]
                 ];   
