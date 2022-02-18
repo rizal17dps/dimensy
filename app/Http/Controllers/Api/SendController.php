@@ -119,6 +119,7 @@ class SendController extends Controller
                     'content.signer.upperRightX' => 'required',
                     'content.signer.upperRightY' => 'required',
                     'content.signer.page' => 'required|numeric',
+                    'content.signer.reason' => 'required|string',
                     'content.signer.location' => 'required|string|regex:/^[a-zA-Z]+$/u',
                 ]);            
 
@@ -185,7 +186,7 @@ class SendController extends Controller
                                 $signer->upper_right_x = $request->input('content.signer.upperRightX');
                                 $signer->upper_right_y = $request->input('content.signer.upperRightY');
                                 $signer->page = $request->input('content.signer.page');
-                                $signer->reason = 'Signed';
+                                $signer->reason = $request->input('content.signer.reason');
                                 $signer->location = $request->input('content.signer.location');
                                 if($signer->save()){
                                     $doks = Sign::find((int)$sign->id);

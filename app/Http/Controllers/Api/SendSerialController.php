@@ -221,6 +221,7 @@ class SendSerialController extends Controller
                     'setSignature.signer.lowerLeftY' => 'required',
                     'setSignature.signer.upperRightX' => 'required',
                     'setSignature.signer.upperRightY' => 'required',
+                    'setSignature.signer.reason' => 'required|string',
                     'setSignature.signer.page' => 'required',
                     'setSignature.signer.location' => 'required'
                 ]);            
@@ -264,7 +265,7 @@ class SendSerialController extends Controller
                                     "page"=> ''.$request->input('setSignature.signer.page').'',
                                     "certificateLevel"=> "NOT_CERTIFIED",
                                     "varLocation"=> ''.$request->input('setSignature.signer.location').'',
-                                    "varReason"=> "TTD"
+                                    "varReason"=> ''.$request->input('setSignature.signer.location').''
                                 ],
                                 "systemId" => 'PT-DPS'
                             ]

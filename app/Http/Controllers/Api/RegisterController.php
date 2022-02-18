@@ -76,6 +76,7 @@ class RegisterController extends Controller
                     'npwp' => 'NPWP',
                     'pob' => 'Place of Birth',
                     'dob' =>'Date of Birth',
+                    'gender' =>'Gender',
                     'city' =>'City',
                     'prov' =>'Province',
                     'foto_ktp' =>'ID Card Picture',
@@ -159,7 +160,7 @@ class RegisterController extends Controller
                             "address"=> $user->alamat,
                             "city"=> $user->kota,
                             "province"=> $user->provinsi,
-                            "gender"=>"M",
+                            "gender"=>$request->input('gender'),
                             "placeOfBirth"=> $user->tempat_lahir,
                             "dateOfBirth"=> date_format($date,"d/m/Y"),
                             "systemId"=>'PT-DPS'
