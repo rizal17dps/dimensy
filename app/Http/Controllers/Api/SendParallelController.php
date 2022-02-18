@@ -256,7 +256,7 @@ class SendParallelController extends Controller
                         }
 
                         $dokSign = dokSign::where('dokumen_id', $request->input('setSignature.dataId'))->where('users_id', $cekEmail->id)->where('status', 'unsigned')->first();
-
+                        
                         $params = [
                             "requestSetSignature" => [
                                 "orderId" => ''.$dokSign->orderId.'',
