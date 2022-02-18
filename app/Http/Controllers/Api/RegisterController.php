@@ -236,7 +236,7 @@ class RegisterController extends Controller
                     ]
                 ];   
                 
-                $regis = $digiSign->callAPI('digitalSignatureFullJwtSandbox/1.0/checkCertificate/v1', $params);
+                $regis = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/checkCertificate/v1', $params);
                 $done = 0;
                 if($regis["resultCode"] == "0"){
                     DB::rollBack();
