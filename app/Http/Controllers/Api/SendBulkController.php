@@ -65,6 +65,7 @@ class SendBulkController extends Controller
                     'content.signer.*.lowerLeftY' => 'required',
                     'content.signer.*.upperRightX' => 'required',
                     'content.signer.*.upperRightY' => 'required',
+                    'content.signer.*.reason' => 'required',
                     'content.signer.*.page' => 'required|numeric',
                     'content.signer.*.location' => 'required|string|regex:/^[a-zA-Z]+$/u',
                 ]);            
@@ -97,6 +98,7 @@ class SendBulkController extends Controller
                         $payload = [];
                         $signId = [];
                         $signerIdentity = [];
+                        
                         foreach($request->input('content.payload') as $doc){
                             $size = $this->utils->getBase64FileSize($doc['base64Doc']);
 
@@ -138,7 +140,7 @@ class SendBulkController extends Controller
                                 $signer->upper_right_x = $request->input('content.signer')[$i]['upperRightX'];
                                 $signer->upper_right_y = $request->input('content.signer')[$i]['upperRightY'];
                                 $signer->page = $request->input('content.signer')[$i]['page'];
-                                $signer->reason = 'Signed';
+                                $signer->reason = $request->input('content.signer')[$i]['reason'];
                                 $signer->location = $request->input('content.signer')[$i]['location'];
                                 $signer->save();
 
@@ -274,6 +276,7 @@ class SendBulkController extends Controller
                 if($getOtp["resultCode"] == "0"){
                     $datas['token'] = $getOtp["data"]["token"];
                     $datas['dataIdBulk'] = $getOtp["data"]["orderIdBulk"];
+                    dokSign::whereIn('dokumen_id', $request->input('data'))->update(['parallelId' => $getOtp["data"]["orderIdBulk"]]);
                     DB::commit();
                     return response()->json(['code'=>0, 'data'=>$datas]);
                 } else {
@@ -356,9 +359,9 @@ class SendBulkController extends Controller
                     return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
                 }
 
-                $dokSign = dokSign::where('dokumen_id', $request->input('dataId'))->first();
+                $dokSign = dokSign::where('parallelId', $request->input('dataId'))->get();
                 if($dokSign){
-                    $doks = Sign::find($dokSign->dokumen_id);
+                    
                     $params = [
                         "requestSigning" => 
                             [
@@ -371,15 +374,18 @@ class SendBulkController extends Controller
     
                     $sign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/signingBulk/v1', $params);
                     if($sign["resultCode"] == 0){
-                        $i = 1;
+                        $x = 0;
+                        
                         foreach($sign["data"] as $signData){
                             $params = [
                                 "param" => 
                                 [
                                     "systemId" => 'PT-DPS',
-                                    "orderId" => ''.$dokSign->orderId.'',
+                                    "orderId" => ''.$signData["orderId"].'',
                                 ]
                             ];
+
+                            $doks = Sign::find($dokSign[$x]->dokumen_id);
                             
                             for($i = 1; $i<=3; $i++){
                                 $viewDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
@@ -415,6 +421,7 @@ class SendBulkController extends Controller
                                     $sukses = false;
                                 }
                             }
+                            $x++;
                         }                        
 
                         if($sukses){
