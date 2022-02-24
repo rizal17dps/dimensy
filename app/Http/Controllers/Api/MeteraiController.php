@@ -228,8 +228,7 @@ class MeteraiController extends Controller
                         } else {
                             DB::rollBack();
                             return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
-                        }
-                        
+                        }                        
                     } else {
                         DB::rollBack();
                         return response(['code' => 97, 'message' => $generateSn]);

@@ -92,7 +92,7 @@ class RegisterController extends Controller
                     'npwp' => ['max:15'],
                     'pob' => ['required', 'string'],
                     'dob' => ['required', 'string'],
-                    'gender' => ['required', 'string'],
+                    'gender' => ['required', 'in:M,F'],
                     'phone' => ['required', 'unique:users,hp'],
                     'address' => ['required', 'string', 'max:255'],
                     'city' => ['required', 'string', 'max:255'],
