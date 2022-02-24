@@ -159,6 +159,7 @@ class SendSerialController extends Controller
                                 }
                                 $dokSign->dokumen_id = $sign->id;
                                 $dokSign->orderId = $sendDoc["data"]["orderId"];
+                                $dokSign->users_id = $user->id;
                                 $dokSign->save();
 
                                 DB::commit();
@@ -494,10 +495,8 @@ class SendSerialController extends Controller
 
                         DB::rollback();
                         return response()->json(['success'=>false, 'msg'=>$viewDoc["resultDesc"]]);
-                    }
-                    
-
-                    
+                    }                  
+  
                 } else {
                     DB::rollBack();
                     return response(['code' => 97, 'message' => 'Document not found']);

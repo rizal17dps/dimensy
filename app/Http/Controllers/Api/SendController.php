@@ -224,6 +224,7 @@ class SendController extends Controller
                                             }                    
                                             $dokSign->dokumen_id = $sign->id;
                                             $dokSign->orderId = $signing['data']['orderId'];
+                                            $dokSign->users_id = $user->id;
                                             $dokSign->save();
 
                                             DB::commit();
@@ -468,8 +469,10 @@ class SendController extends Controller
                     return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
                 }
 
-                $doks = dokSign::where('dokumen_id', (int)$request->input('dataId'))->first();
+                $doks = dokSign::join('users', 'users.id', '=', 'dok_sign.users_id')->where('dokumen_id', (int)$request->input('dataId'))->where('users.email', $email)->first();
                 if($doks){
+                    $dok = Sign::find($request->input('dataId'));
+                    //dd($dok->);
                     $params = [
                         "param" => [
                             "systemId" => 'PT-DPS',
@@ -489,7 +492,7 @@ class SendController extends Controller
                     }
                 } else {
                     DB::rollBack();
-                    return response()->json(['code'=>97, 'message'=>'Document not found']);
+                    return response()->json(['code'=>97, 'message'=>'dataId not found or not match with the email']);
                 }
             }
             
