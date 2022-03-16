@@ -87,4 +87,44 @@ class CompanyService
         }        
     }
 
+    public function historyPemakaian($paket, $user, $desc = null)
+    {
+        DB::beginTransaction();
+        try{
+            $history = new HistoryPemakaian();
+            $history->paket_detail_id = $paket;
+            $history->users_id = $user;
+            $history->description = $desc;
+            $history->save();
+            
+            DB::commit();
+            return true;
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return false;
+        }        
+    }
+
+    public function quotaKurang($paket, $company=null){
+        DB::beginTransaction();
+        try{
+            
+            if($company){
+                $quota = Quota::where('paket_detail_id', $paket)->where('company_id', $company)->first();
+            } else {
+                $quota = Quota::where('paket_detail_id', $paket)->where('company_id', auth()->user()->company_id)->first();
+            }
+            if($quota){
+                $quota->quota = $quota->quota - 1;
+                $quota->save();
+            }
+            
+            DB::commit();
+            return true;
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return false;
+        }
+    }
+
 }

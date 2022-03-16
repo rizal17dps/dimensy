@@ -14,6 +14,8 @@ use App\Models\MapCompany;
 use App\Models\Meterai;
 use App\Models\ListSigner; 
 use App\Models\Sign;
+use App\Models\Base64DokModel;
+use App\Models\PricingModel;
 use Illuminate\Support\Facades\Storage;
 
 class MeteraiController extends Controller
@@ -126,14 +128,14 @@ class MeteraiController extends Controller
                         'content.base64Doc' => 'required',
                         'content.docType' => 'required',
                         'content.signer' => 'array|min:1',
-                        'content.signer.lowerLeftX' => 'required',
-                        'content.signer.lowerLeftY' => 'required',
-                        'content.signer.upperRightX' => 'required',
-                        'content.signer.upperRightY' => 'required',
-                        'content.signer.page' => 'required',
-                        'content.signer.location' => 'string',
+                        'content.signer.*.lowerLeftX' => 'required',
+                        'content.signer.*.lowerLeftY' => 'required',
+                        'content.signer.*.upperRightX' => 'required',
+                        'content.signer.*.upperRightY' => 'required',
+                        'content.signer.*.page' => 'required',
+                        'content.signer.*.location' => 'string',
                     ]);
-
+                    
                     $image_base64 = base64_decode($request->input('content.base64Doc'));
                     $fileName = time() . '.pdf';
                     Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
@@ -147,93 +149,165 @@ class MeteraiController extends Controller
                     $sign->status_id = '1';
                     $sign->save();
 
-                    $signer = new ListSigner();
-                    $signer->users_id = $user->id;
-                    $signer->dokumen_id = $sign->id;
-                    $signer->step = 1;
-                    $signer->lower_left_x = $request->input('content.signer.lowerLeftX');
-                    $signer->lower_left_y = $request->input('content.signer.lowerLeftY');
-                    $signer->upper_right_x = $request->input('content.signer.upperRightX');
-                    $signer->upper_right_y = $request->input('content.signer.upperRightY');
-                    $signer->page = $request->input('content.signer.page');
-                    $signer->location = $request->input('content.signer.location');
-                    $signer->save();
-
+                    $i = 0;
                     $docType = DB::table('jenis_dokumen')->find($request->input('content.docType'));
 
-                    $paramsSn = [
-                        "isUpload"=> false,
-                        "namadoc"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
-                        "namafile"=> $sign->realname,
-                        "nilaidoc"=> "10000",
-                        "snOnly"=> false,
-                        "nodoc"=> $request->input('content.noDoc'),
-                        "tgldoc"=> date_format($sign->created_at,"Y-m-d")
-                    ];
-                    
-                    $generateSn = $this->meterai->callAPI('chanel/stampv2', $paramsSn, 'stamp', 'POST');
-                    if($generateSn["statusCode"] == "00"){
-                        $image_base64 = base64_decode($generateSn["result"]["image"]);
-                        $fileName = $generateSn["result"]["sn"].'.png';
-                        Storage::disk('minio')->put($user->company_id .'/dok/'.$sign->users_id.'/meterai/'.$fileName, $image_base64);
-                        
-                        $meterai = new Meterai();
-                        $meterai->serial_number = $generateSn["result"]["sn"];
-                        $meterai->path = $sign->user->company_id .'/dok/'.$sign->users_id.'/meterai/'.$fileName;
-                        $meterai->status = 0;
-                        $meterai->company_id = $sign->user->company_id;
-                        $meterai->save();
+                    foreach($request->input('content.signer') as $data){
 
+                        $sign = Sign::find($sign->id);
+
+                        $signer = new ListSigner();
+                        $signer->users_id = $user->id;
+                        $signer->dokumen_id = $sign->id;
+                        $signer->step = 1;
+                        $signer->lower_left_x = $data['lowerLeftX'];
+                        $signer->lower_left_y = $data['lowerLeftY'];
+                        $signer->upper_right_x = $data['upperRightX'];
+                        $signer->upper_right_y = $data['upperRightY'];
+                        $signer->page = $data['page'];
+                        $signer->location = $data['location'];
+                        $signer->save();
+                                        
+                        
+                        $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $user->company_id)->first();
                         $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
 
-                        $paramSigns = [
-                            "certificatelevel"=> "NOT_CERTIFIED",
-                            "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
-                            "docpass"=> ''.$request->input('content.docpass').'',
-                            "jwToken"=> $generateSn["token"],
-                            "location"=> ''.$request->input('content.signer.location').'',
-                            "profileName"=> "emeteraicertificateSigner",
-                            "reason"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
-                            "refToken"=> $generateSn["result"]["sn"],
-                            "spesimenPath"=> '/sharefolder/'.$meterai->path,
-                            "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
-                            "visLLX"=> $request->input('content.signer.lowerLeftX'),
-                            "visLLY"=> $request->input('content.signer.lowerLeftY'),
-                            "visURX"=> $request->input('content.signer.upperRightX'),
-                            "visURY"=> $request->input('content.signer.upperRightY'),
-                            "visSignaturePage"=> $request->input('content.signer.page'),
-                        ];
+                        if($cekUnusedMeterai){
 
-                        $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
-                        if($signMeterai['errorCode'] == 0){
-                            $cekDoks = Sign::find($sign->id);
-                            $cekDoks->status_id = 8;
-                            $cekDoks->name = $fileNameFinal;
-                            $cekDoks->save();
-        
-                            $cekMeterais = Meterai::find($meterai->id);
-                            if($cekMeterais) {
-                                $cekMeterais->status = 1;
-                                $cekMeterais->dokumen_id = $sign->id;
-                                $cekMeterais->save();
-                            }
+                            $cek = $this->meterai->getJwt();
 
-                            if(!$this->companyService->history($quotaMeterai, $cekEmail->id)){
+                            $paramSigns = [
+                                "certificatelevel"=> "NOT_CERTIFIED",
+                                "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
+                                "docpass"=> ''.$request->input('content.docpass').'',
+                                "jwToken"=> $cek["token"],
+                                "location"=> ''.$data['location'].'',
+                                "profileName"=> "emeteraicertificateSigner",
+                                "reason"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                                "refToken"=> $cekUnusedMeterai->serial_number,
+                                "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
+                                "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
+                                "visLLX"=> $data['lowerLeftX'],
+                                "visLLY"=> $data['lowerLeftY'],
+                                "visURX"=> $data['upperRightX'],
+                                "visURY"=> $data['upperRightY'],
+                                "visSignaturePage"=> $data['page'],
+                            ];
+
+                            $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
+                            
+                            if($signMeterai['errorCode'] == 0){
+                                $cekDoks = Sign::find($sign->id);
+                                $cekDoks->status_id = 8;
+                                $cekDoks->name = $fileNameFinal;
+                                $cekDoks->save();
+            
+                                $cekUnusedMeterai->status = 1;
+                                $cekUnusedMeterai->dokumen_id = $sign->id;
+                                $cekUnusedMeterai->save();
+
+                                $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $user->company_id)->first();
+
+                                // if(!$this->companyService->history($quotaMeterai, $cekEmail->id)){
+                                //     DB::rollBack();
+                                //     return response(['code' => 98, 'message' => 'Error create History']);
+                                // }
+
+                                if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                                    DB::rollBack();
+                                    throw new \Exception('Error Create History Pemakaian', 500);
+                                }
+
+                                if(!$this->companyService->quotaKurang($quotaMeterai, $user->company_id)){
+                                    DB::rollBack();
+                                    throw new \Exception('Error Create History Pemakaian', 500);
+                                }
+
+                                DB::commit();
+                                //
+                            } else {
                                 DB::rollBack();
-                                return response(['code' => 98, 'message' => 'Error create History']);
-                            }
-
-                            DB::commit();
-                            return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
+                                return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
+                            }  
                         } else {
-                            DB::rollBack();
-                            return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
-                        }                        
-                    } else {
-                        DB::rollBack();
-                        return response(['code' => 97, 'message' => $generateSn]);
-                    }                   
-                    
+
+                            $paramsSn = [
+                                "isUpload"=> false,
+                                "namadoc"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                                "namafile"=> $sign->realname,
+                                "nilaidoc"=> "10000",
+                                "snOnly"=> false,
+                                "nodoc"=> $request->input('content.noDoc'),
+                                "tgldoc"=> date_format($sign->created_at,"Y-m-d")
+                            ];
+                            
+                            $generateSn = $this->meterai->callAPI('chanel/stampv2', $paramsSn, 'stamp', 'POST');
+                            if($generateSn["statusCode"] == "00"){
+                                $image_base64 = base64_decode($generateSn["result"]["image"]);
+                                $fileName = $generateSn["result"]["sn"].'.png';
+                                Storage::disk('minio')->put($user->company_id .'/dok/'.$sign->users_id.'/meterai/'.$fileName, $image_base64);
+                                
+                                $meterai = new Meterai();
+                                $meterai->serial_number = $generateSn["result"]["sn"];
+                                $meterai->path = $sign->user->company_id .'/dok/'.$sign->users_id.'/meterai/'.$fileName;
+                                $meterai->status = 0;
+                                $meterai->company_id = $sign->user->company_id;
+                                $meterai->save();
+
+                                $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
+
+                                $paramSigns = [
+                                    "certificatelevel"=> "NOT_CERTIFIED",
+                                    "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
+                                    "docpass"=> ''.$request->input('content.docpass').'',
+                                    "jwToken"=> $generateSn["token"],
+                                    "location"=> ''.$data['location'].'',
+                                    "profileName"=> "emeteraicertificateSigner",
+                                    "reason"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                                    "refToken"=> $generateSn["result"]["sn"],
+                                    "spesimenPath"=> '/sharefolder/'.$meterai->path,
+                                    "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
+                                    "visLLX"=> $data['lowerLeftX'],
+                                    "visLLY"=> $data['lowerLeftY'],
+                                    "visURX"=> $data['upperRightX'],
+                                    "visURY"=> $data['upperRightY'],
+                                    "visSignaturePage"=> $data['page'],
+                                ];
+
+                                $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
+                                if($signMeterai['errorCode'] == 0){
+                                    $cekDoks = Sign::find($sign->id);
+                                    $cekDoks->status_id = 8;
+                                    $cekDoks->name = $fileNameFinal;
+                                    $cekDoks->save();
+                
+                                    $cekMeterais = Meterai::find($meterai->id);
+                                    if($cekMeterais) {
+                                        $cekMeterais->status = 1;
+                                        $cekMeterais->dokumen_id = $sign->id;
+                                        $cekMeterais->save();
+                                    }
+
+                                    if(!$this->companyService->history($quotaMeterai, $cekEmail->id)){
+                                        DB::rollBack();
+                                        return response(['code' => 98, 'message' => 'Error create History']);
+                                    }
+
+                                    DB::commit();
+                                    //return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
+                                } else {
+                                    DB::rollBack();
+                                    return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
+                                }                        
+                            } else {
+                                DB::rollBack();
+                                return response(['code' => 97, 'message' => $generateSn]);
+                            }    
+                        }
+                        $i++;
+                    }      
+
+                    return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
                 } else {
                     DB::rollBack();
                     return response(['code' => 98, 'message' => 'Email Not Found']);

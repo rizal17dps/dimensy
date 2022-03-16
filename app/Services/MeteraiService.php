@@ -92,13 +92,16 @@ class MeteraiService
         try{
             $cek = $this->getJwt();
             if ($cek['statusCode'] == "00") {
+                //dd(json_encode($params));
                 $x = $this->getResponse(
                     $uri,$params,$type,$method,$cek['token']
                 );
                 $x['token'] = $cek['token'];
             }  else {
+                
                 $x = $cek;
             }
+            
             return $x;
         } catch (\Exception $e) {
             //$this->logError(\Request::getClientIp(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
