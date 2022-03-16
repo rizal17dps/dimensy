@@ -187,93 +187,71 @@ class MeteraiController extends Controller
 
                         if($cekUnusedMeterai){
 
-                            $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $user->company_id)->first();
-                            $historyTrans = [
-                                        "paket"=> "materai"
-                                    ];
+                            $cek = $this->meterai->getJwt();
+
+                            $paramSigns = [
+                                "certificatelevel"=> "NOT_CERTIFIED",
+                                "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
+                                "docpass"=> ''.$request->input('content.docpass').'',
+                                "jwToken"=> $cek["token"],
+                                "location"=> ''.$data['location'].'',
+                                "profileName"=> "emeteraicertificateSigner",
+                                "reason"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                                "refToken"=> $cekUnusedMeterai->serial_number,
+                                "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
+                                "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
+                                "visLLX"=> $data['lowerLeftX'],
+                                "visLLY"=> $data['lowerLeftY'],
+                                "visURX"=> $data['upperRightX'],
+                                "visURY"=> $data['upperRightY'],
+                                "visSignaturePage"=> $data['page'],
+                            ];
+
+                            $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
+                            
+                            if($signMeterai['errorCode'] == 0){
+                                $cekDoks = Sign::find($sign->id);
+                                $cekDoks->status_id = 8;
+                                $cekDoks->name = $fileNameFinal;
+                                $cekDoks->save();
+            
+                                $cekUnusedMeterai->status = 1;
+                                $cekUnusedMeterai->dokumen_id = $sign->id;
+                                $cekUnusedMeterai->save();
+
+                                $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $user->company_id)->first();
+
+                                // if(!$this->companyService->history($quotaMeterai, $cekEmail->id)){
+                                //     DB::rollBack();
+                                //     return response(['code' => 98, 'message' => 'Error create History']);
+                                // }
+
+                                $historyTrans = [
+                                    "paket"=> "materai"
+                                ];
+                
                                 $historySisa = $this->dimensyService->callAPI('api/historyTrans', $historyTrans);
                                 if($historySisa['code'] != 0){
                                     DB::rollBack();
                                     return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
                                 }
 
-                            if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                                if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                                    DB::rollBack();
+                                    return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
+                                }
+
+                                if(!$this->companyService->quotaKurang($quotaMeterai, $user->company_id)){
+                                    DB::rollBack();
+                                    return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
+                                }
+
+                                DB::commit();
+                                //
+                            } else {
                                 DB::rollBack();
-                                return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                            }
-
-                            if(!$this->companyService->quotaKurang($quotaMeterai, $user->company_id)){
-                                DB::rollBack();
-                                return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                            }
-
-                            DB::commit();
-
-                            // $cek = $this->meterai->getJwt();
-
-                            // $paramSigns = [
-                            //     "certificatelevel"=> "NOT_CERTIFIED",
-                            //     "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
-                            //     "docpass"=> ''.$request->input('content.docpass').'',
-                            //     "jwToken"=> $cek["token"],
-                            //     "location"=> ''.$data['location'].'',
-                            //     "profileName"=> "emeteraicertificateSigner",
-                            //     "reason"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
-                            //     "refToken"=> $cekUnusedMeterai->serial_number,
-                            //     "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
-                            //     "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
-                            //     "visLLX"=> $data['lowerLeftX'],
-                            //     "visLLY"=> $data['lowerLeftY'],
-                            //     "visURX"=> $data['upperRightX'],
-                            //     "visURY"=> $data['upperRightY'],
-                            //     "visSignaturePage"=> $data['page'],
-                            // ];
-
-                            // $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
-                            
-                            // if($signMeterai['errorCode'] == 0){
-                            //     $cekDoks = Sign::find($sign->id);
-                            //     $cekDoks->status_id = 8;
-                            //     $cekDoks->name = $fileNameFinal;
-                            //     $cekDoks->save();
-            
-                            //     $cekUnusedMeterai->status = 1;
-                            //     $cekUnusedMeterai->dokumen_id = $sign->id;
-                            //     $cekUnusedMeterai->save();
-
-                            //     $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $user->company_id)->first();
-
-                            //     // if(!$this->companyService->history($quotaMeterai, $cekEmail->id)){
-                            //     //     DB::rollBack();
-                            //     //     return response(['code' => 98, 'message' => 'Error create History']);
-                            //     // }
-
-                            //     $historyTrans = [
-                            //         "paket"=> "materai"
-                            //     ];
-                
-                            //     $historySisa = $this->dimensyService->callAPI('api/historyTrans', $historyTrans);
-                            //     if($historySisa['code'] != 0){
-                            //         DB::rollBack();
-                            //         return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                            //     }
-
-                            //     if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
-                            //         DB::rollBack();
-                            //         return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                            //     }
-
-                            //     if(!$this->companyService->quotaKurang($quotaMeterai, $user->company_id)){
-                            //         DB::rollBack();
-                            //         return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                            //     }
-
-                            //     DB::commit();
-                            //     //
-                            // } else {
-                            //     DB::rollBack();
-                            //     return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
-                            // }  
+                                return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
+                            }  
                         } else {
                             DB::rollBack();
                             return response(['code' => 95, 'message' => "Please check the speciment meterai"]);                                
