@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\PricingModel;
+use App\Services\CompanyService;
 use App\Services\CekCredential;
 use App\Services\Utils;
+use App\Models\MapCompany;
 use App\Models\User;
 use App\Models\Quota;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +16,9 @@ use Illuminate\Support\Facades\DB;
 class QuotaController extends Controller
 {
     //
-    public function __construct(CekCredential $cekCredential, Utils $utils){
+    public function __construct(CekCredential $cekCredential, Utils $utils, CompanyService $companyService){
         $this->cekCredential = $cekCredential;
+        $this->companyService = $companyService;
         $this->utils = $utils;
     }
 
