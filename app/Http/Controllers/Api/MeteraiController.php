@@ -200,7 +200,7 @@ class MeteraiController extends Controller
                                 "certificatelevel"=> "NOT_CERTIFIED",
                                 "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
                                 "docpass"=> ''.$request->input('content.docpass').'',
-                                "jwToken"=> $cek["token"],
+                                "jwToken"=> 'a',
                                 "location"=> ''.$data['location'].'',
                                 "profileName"=> "emeteraicertificateSigner",
                                 "reason"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
