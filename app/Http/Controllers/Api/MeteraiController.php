@@ -122,7 +122,7 @@ class MeteraiController extends Controller
                 ];
 
                 $quotaSisa = $this->dimensyService->callAPI('api/cekSingleQuota', $paramQuota);
-                
+                dd($quotaSisa);
                 if($quotaSisa['code'] == 0){
                     if($quotaSisa['data'] <= 0){
                         DB::rollBack();
