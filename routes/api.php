@@ -63,6 +63,7 @@ Route::post('/renewal', '\App\Http\Controllers\Api\RegisterController@renewal');
 Route::get('/quota', '\App\Http\Controllers\Api\QuotaController@cekQuota');
 Route::post('/cekSingleQuota', '\App\Http\Controllers\Api\QuotaController@cekSingleQuota');
 Route::post('/historyTrans', '\App\Http\Controllers\Api\QuotaController@historyTrans');
+Route::post('/transfer', '\App\Http\Controllers\Api\QuotaController@transfer');
 
 //Meterai
 Route::get('/DocType', '\App\Http\Controllers\Api\MeteraiController@jenisDok');
