@@ -117,7 +117,8 @@ class MeteraiController extends Controller
                     }
                 }
 
-                $paramQuota = [
+                //check ke dimensy
+                /*$paramQuota = [
                     "quota_id"=> "6"
                 ];
 
@@ -131,6 +132,12 @@ class MeteraiController extends Controller
                 } else {
                     DB::rollBack();
                     return response(['code' => 98, 'message' => 'Error Check Quota']);
+                }*/
+
+                //check quota local
+                if($this->companyService->cek($quotaMeterai, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
                 }
 
                 $user = User::where('email', $email)->first();
@@ -226,15 +233,15 @@ class MeteraiController extends Controller
                                 //     return response(['code' => 98, 'message' => 'Error create History']);
                                 // }
 
-                                $historyTrans = [
-                                    "paket"=> "materai"
-                                ];
+                                // $historyTrans = [
+                                //     "paket"=> "materai"
+                                // ];
                 
-                                $historySisa = $this->dimensyService->callAPI('api/historyTrans', $historyTrans);
-                                if($historySisa['code'] != 0){
-                                    DB::rollBack();
-                                    return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                                }
+                                // $historySisa = $this->dimensyService->callAPI('api/historyTrans', $historyTrans);
+                                // if($historySisa['code'] != 0){
+                                //     DB::rollBack();
+                                //     return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
+                                // }
 
                                 if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
                                     DB::rollBack();
