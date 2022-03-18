@@ -16,7 +16,7 @@ class MeteraiService
     {
         $this->urlInfo = "https://backendservicedev.scm.perurica.co.id/"; //'https://backendservicedev.scm.perurica.co.id/';
         $this->urlStamp = "https://stampv2dev.scm.perurica.co.id/"; //'https://stampv2dev.scm.perurica.co.id/';
-        $this->urlKeyStamp = "http://192.168.200.205:8888/"; //'http://192.168.200.205:8888/';
+        $this->urlKeyStamp = env('API_METERAI_KEYSTAMP'); //'http://192.168.200.205:8888/';
         $this->http = $client;
     }
 
