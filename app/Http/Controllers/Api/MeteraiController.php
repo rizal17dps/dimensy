@@ -214,8 +214,10 @@ class MeteraiController extends Controller
                                 "visSignaturePage"=> $data['page'],
                             ];
 
+                            dd($paramSigns);
+
                             $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
-                            dd($signMeterai);
+                            
                             if($signMeterai['errorCode'] == 0){
                                 $cekDoks = Sign::find($sign->id);
                                 $cekDoks->status_id = 8;
