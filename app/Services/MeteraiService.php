@@ -32,6 +32,7 @@ class MeteraiService
             }
 
             $full_path .= $uri;
+            dd($full_path);
             if ($token != null) {
                 $head = [
                     'content-type' => 'application/json',
