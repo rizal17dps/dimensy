@@ -92,7 +92,7 @@ class MeteraiService
     {
         try{
             $x = $this->getResponse(
-                $uri,$params,$type,$method,$cek['token']
+                $uri,$params,$type,$method,'s'
             );
             
             return $x;
