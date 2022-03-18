@@ -32,6 +32,7 @@ class MeteraiService
             }
 
             $full_path .= $uri;
+            dd($full_path);
             if ($token != null) {
                 $head = [
                     'content-type' => 'application/json',
@@ -90,17 +91,9 @@ class MeteraiService
     public function callAPI(string $uri = null, array $params = [], $type, $method)
     {
         try{
-            $cek = $this->getJwt();
-            if ($cek['statusCode'] == "00") {
-                //dd(json_encode($params));
-                $x = $this->getResponse(
-                    $uri,$params,$type,$method,$cek['token']
-                );
-                $x['token'] = $cek['token'];
-            }  else {
-                
-                $x = $cek;
-            }
+            $x = $this->getResponse(
+                $uri,$params,$type,$method,$cek['token']
+            );
             
             return $x;
         } catch (\Exception $e) {
