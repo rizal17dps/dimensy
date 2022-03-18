@@ -195,7 +195,7 @@ class MeteraiController extends Controller
                         if($cekUnusedMeterai){
 
                             $cek = $this->meterai->getJwt();
-                            dd($cek);
+                            
                             $paramSigns = [
                                 "certificatelevel"=> "NOT_CERTIFIED",
                                 "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
@@ -215,7 +215,7 @@ class MeteraiController extends Controller
                             ];
 
                             $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
-                            
+                            dd($signMeterai);
                             if($signMeterai['errorCode'] == 0){
                                 $cekDoks = Sign::find($sign->id);
                                 $cekDoks->status_id = 8;
