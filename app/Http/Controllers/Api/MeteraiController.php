@@ -195,7 +195,7 @@ class MeteraiController extends Controller
                         if($cekUnusedMeterai){
 
                             $cek = $this->meterai->getJwt();
-
+                            dd($cek);
                             $paramSigns = [
                                 "certificatelevel"=> "NOT_CERTIFIED",
                                 "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
