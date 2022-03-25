@@ -1200,23 +1200,25 @@ components:
           example: ONPROGRESS
           description: Document status
     Signer:
-      type: object
+      type: array
       description: Contains the coordinates of your document's Signature, e-Meterai, or Stamp element.
-      properties:
-        lowerLeftX:
-          type: string
-        lowerLeftY:
-          type: string
-        upperRightX:
-          type: string
-        upperRightY:
-          type: string
-        page:
-          type: string
-          description: The page location of the signature.
-        location:
-          type: string
-          description: Location of the city where the signature, e-Meterai or stamp is placed.
+      items:
+        type: object
+        properties:
+          lowerLeftX:
+            type: string
+          lowerLeftY:
+            type: string
+          upperRightX:
+            type: string
+          upperRightY:
+            type: string
+          page:
+            type: string
+            description: The page location of the signature.
+          location:
+            type: string
+            description: Location of the city where the signature, e-Meterai or stamp is placed.
       required:
       - lowerLeftX
       - lowerLeftY

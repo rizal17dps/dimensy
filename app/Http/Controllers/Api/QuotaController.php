@@ -192,181 +192,121 @@ class QuotaController extends Controller
     public function transfer(Request $request, DimensyService $dimensyService){
         DB::beginTransaction();
         try{
-            if($this->utils->block()){
-                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            //transfer meterai
+            if($request->input('paket') == 6){
+                $pindah = new Meterai();
+                $pindah->company_id = $request->input('id');
+                $pindah->save();
             }
-            
-            $header = $request->header('apiKey');
-            $email = $request->header('email');
+                            
+            $pricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $request->input('id'))->first();
+            if(!$pricing){
+                $pricing = new PricingModel();
+            }            
+            $pricing->company_id = $request->input('id');
+            $pricing->name_id = $request->input('paket');
+            $pricing->price = preg_replace("/[^0-9]/", "", $request->input('price'));
+            $pricing->qty = $request->input('qty');
+            $pricing->save();
 
-            if(!$header){
-                return response(['code' => 98, 'message' => 'Api Key Required']);
-            }
-
-            if(!$email){
-                return response(['code' => 98, 'message' => 'Email Required']);
-            }
+            $paketId='0';
+            $satuan = 'Tahun';
+            $drs = "year";
             
-            $cekToken = $this->cekCredential->cekToken($header);
-            $cekEmail = $this->cekCredential->cekEmail($header, $email);
-            if(!$cekToken){
-                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
-                DB::commit();
-                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
-            }  else if(!$cekEmail){
-                DB::rollBack();
-                return response(['code' => 98, 'message' => 'Email Not Found']);
+            $dt1 = new DateTime();
+            $today = $dt1->format("Y-m-d");
+
+            $dt2 = new DateTime("+ 1 year");
+            $dateExp = $dt2->format("Y-m-d");   
+            $mapCompany = MapCompany::where('company_id', $request->input('id'))->first();
+            if($mapCompany){
+                $paketId = $mapCompany->paket_id;
             } else {
+                $paket = new Paket();
+                $paket->name = 'Paket-'.$request->input('id');
+                $paket->icon = 'no-icon';
+                $paket->durasi = '1';
+                $paket->satuan = 'Tahun';
+                $paket->company_id = $request->input('id');
+                $paket->save();
 
-                $infoDetil = PaketDetail::where('detail_name_id', $request->input('paket'))->first();
-                $cekMapCompany = MapCompany::join('map_paket', 'map_company.paket_id', '=', 'map_paket.paket_id')
-                                            ->join('paket_detail', 'map_paket.paket_detial_id', '=', 'paket_detail.id')
-                                            ->where('map_company.company_id', $cekEmail->company_id)
-                                            ->where('paket_detail.detail_name_id', $request->input('paket'))
-                                            ->select('paket_detail.id')->first();
+                $storeMapCompany = new MapCompany();
+                $storeMapCompany->paket_id = $paket->id;
+                $storeMapCompany->company_id = $request->input('id');
+                $storeMapCompany->expired_date = $dateExp;
+                $storeMapCompany->save();
 
-                $cekSisaQuota = Quota::where('company_id', $cekEmail->company_id)->where('paket_detail_id', $cekMapCompany->id)->first();
-                
-                if($infoDetil->type == 'materai'){
-                    $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $cekEmail->company_id)->first();
-                    if($cekUnusedMeterai) {
-                        for($i = 1; $i <= $request->input('qty'); $i++){
-                            $pindah = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $cekEmail->company_id)->first();
-                            $pindah->company_id = $request->input('id');
-                            $pindah->save();
-                        }
-                    }
-                }
-
-                if($cekSisaQuota){
-                    if($infoDetil->type == 'storage'){
-                        $pengurangan = $request->input('qty')  * pow(1024, 3);
-                        if(($request->input('qty')  * pow(1024, 3)) > $cekSisaQuota->quota) {
-                            DB::rollback();
-                            return response(['code' => 98, 'message' => 'Insufficient quota']);
-                        }
-                    } else {
-                        $pengurangan = $request->input('qty');
-                        if($request->input('qty') > $cekSisaQuota->quota) {
-                            DB::rollback();
-                            return response(['code' => 98, 'message' => 'Insufficient quota']);
-                        }
-                    }
-                } else {
-                    DB::rollback();
-                    return response(['code' => 98, 'message' => 'Error cek sisa quota']);
-
-                }
-                
-                $pricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $request->input('id'))->first();
-                if(!$pricing){
-                    $pricing = new PricingModel();
-                }            
-                $pricing->company_id = $request->input('id');
-                $pricing->name_id = $request->input('paket');
-                $pricing->price = preg_replace("/[^0-9]/", "", $request->input('price'));
-                $pricing->qty = $request->input('qty');
-                $pricing->save();
-
-                $paketId='0';
-                $satuan = 'Tahun';
-                $drs = "year";
-                
-                $dt1 = new DateTime();
-                $today = $dt1->format("Y-m-d");
-
-                $dt2 = new DateTime("+ 1 year");
-                $dateExp = $dt2->format("Y-m-d");   
-                $mapCompany = MapCompany::where('company_id', $request->input('id'))->first();
-                if($mapCompany){
-                    $paketId = $mapCompany->paket_id;
-                } else {
-                    $paket = new Paket();
-                    $paket->name = 'Paket-'.$request->input('id');
-                    $paket->icon = 'no-icon';
-                    $paket->durasi = '1';
-                    $paket->satuan = 'Tahun';
-                    $paket->company_id = $request->input('id');
-                    $paket->save();
-
-                    $storeMapCompany = new MapCompany();
-                    $storeMapCompany->paket_id = $paket->id;
-                    $storeMapCompany->company_id = $request->input('id');
-                    $storeMapCompany->expired_date = $dateExp;
-                    $storeMapCompany->save();
-
-                    $paketId = $paket->id;
-                }
-
-                $paketDetail = PaketDetail::where('detail_name_id', $request->input('paket'))->where('company_id', $request->input('id'))->first();
-                if(!$paketDetail){
-                    $paketDetail = new PaketDetail();
-                }            
-                $paketDetail->value = $request->input('qty');
-                $paketDetail->satuan = $infoDetil->satuan;
-                $paketDetail->type = $infoDetil->type;
-                $paketDetail->company_id = $request->input('id');
-                $paketDetail->detail_name_id = $request->input('paket');
-                $paketDetail->save();
-
-                $mapPaket = new MapPaket();
-                $mapPaket->paket_id = $paketId;
-                $mapPaket->paket_detial_id = $paketDetail->id;
-                $mapPaket->save();
-
-                $quota = Quota::where('company_id', $request->input('id'))->where('paket_detail_id', $paketDetail->id)->first();
-                if($quota){
-                    if($infoDetil->type == 'storage'){                
-                        $quota->quota = $quota->quota + ($request->input('qty') * pow(1024, 3));
-                    } else {
-                        $quota->quota = $quota->quota + $request->input('qty');
-                    }
-                    $quota->all = $quota->all + $request->input('qty');
-                } else {
-                    $quota = new Quota();
-                    $quota->paket_detail_id = $paketDetail->id;
-                    $quota->company_id = $request->input('id');
-                    if($infoDetil->type == 'storage'){                
-                        $quota->quota = $request->input('qty') * pow(1024, 3);
-                    } else {
-                        $quota->quota = $request->input('qty');
-                    }
-                    $quota->all = $request->input('qty');
-                }
-                
-                $quota->save();       
-                
-                $cekSisaQuota->quota = $cekSisaQuota->quota - $pengurangan;
-                $cekSisaQuota->save();
-
-                // if($request->input('paket') == 6){
-                //     $Basepricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $cekEmail->company_id)->first();
-
-                //     for($i = 1; $i <= $request->input('qty'); $i++){
-                //         if(!$companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
-                //             DB::rollBack();
-                //             throw new \Exception('Error Create History Pemakaian', 500);
-                //         }
-                //     } 
-                // } else {
-                //     if(!$companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, "Transfer quota sebesar ".$request->input('qty')."ke ".$request->input('nama'))){
-                //         DB::rollBack();
-                //         throw new \Exception('Error Create History Pemakaian', 500);
-                //     }
-                // } 
-                
-                $Basepricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $cekEmail->company_id)->first();
-
-                    for($i = 1; $i <= $request->input('qty'); $i++){
-                        if(!$this->companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
-                            DB::rollBack();
-                            return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                        }
-                    } 
-
-                DB::commit();
-                return response(['code' => 0,'message' =>'Success']);
+                $paketId = $paket->id;
             }
+
+            $paketDetail = PaketDetail::where('detail_name_id', $request->input('paket'))->where('company_id', $request->input('id'))->first();
+            if(!$paketDetail){
+                $paketDetail = new PaketDetail();
+            }            
+            $paketDetail->value = $request->input('qty');
+            $paketDetail->satuan = $infoDetil->satuan;
+            $paketDetail->type = $infoDetil->type;
+            $paketDetail->company_id = $request->input('id');
+            $paketDetail->detail_name_id = $request->input('paket');
+            $paketDetail->save();
+
+            $mapPaket = new MapPaket();
+            $mapPaket->paket_id = $paketId;
+            $mapPaket->paket_detial_id = $paketDetail->id;
+            $mapPaket->save();
+
+            $quota = Quota::where('company_id', $request->input('id'))->where('paket_detail_id', $paketDetail->id)->first();
+            if($quota){
+                if($infoDetil->type == 'storage'){                
+                    $quota->quota = $quota->quota + ($request->input('qty') * pow(1024, 3));
+                } else {
+                    $quota->quota = $quota->quota + $request->input('qty');
+                }
+                $quota->all = $quota->all + $request->input('qty');
+            } else {
+                $quota = new Quota();
+                $quota->paket_detail_id = $paketDetail->id;
+                $quota->company_id = $request->input('id');
+                if($infoDetil->type == 'storage'){                
+                    $quota->quota = $request->input('qty') * pow(1024, 3);
+                } else {
+                    $quota->quota = $request->input('qty');
+                }
+                $quota->all = $request->input('qty');
+            }
+            
+            $quota->save();       
+            
+            $cekSisaQuota->quota = $cekSisaQuota->quota - $pengurangan;
+            $cekSisaQuota->save();
+
+            // if($request->input('paket') == 6){
+            //     $Basepricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $cekEmail->company_id)->first();
+
+            //     for($i = 1; $i <= $request->input('qty'); $i++){
+            //         if(!$companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+            //             DB::rollBack();
+            //             throw new \Exception('Error Create History Pemakaian', 500);
+            //         }
+            //     } 
+            // } else {
+            //     if(!$companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, "Transfer quota sebesar ".$request->input('qty')."ke ".$request->input('nama'))){
+            //         DB::rollBack();
+            //         throw new \Exception('Error Create History Pemakaian', 500);
+            //     }
+            // } 
+            
+            $Basepricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $cekEmail->company_id)->first();
+
+                for($i = 1; $i <= $request->input('qty'); $i++){
+                    if(!$this->companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                        DB::rollBack();
+                        return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
+                    }
+                } 
+
+            DB::commit();
+            return response(['code' => 0,'message' =>'Success']);
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
