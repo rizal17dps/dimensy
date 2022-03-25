@@ -26,7 +26,7 @@ class SendController extends Controller
         $this->companyService = $companyService;
     }
 
-    public function getDocument(Request $request) {
+    public function getDocument(Request $request, $id=null) {
         try{
             if($this->utils->block()){
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
@@ -57,7 +57,14 @@ class SendController extends Controller
 
                 $user = User::where('email', $email)->first();
                 if($user){
-                    $dok = Sign::where('users_id',$user->id)->get();
+                    if($id){
+                        $dok = Sign::where('users_id',$user->id)->where('id', $id)->get();
+
+                    } else {
+                        $dok = Sign::where('users_id',$user->id)->get();
+
+                    }
+
                     if($dok){
                         $list = [];
                         foreach($dok as $data){
