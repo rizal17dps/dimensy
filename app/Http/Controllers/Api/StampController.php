@@ -193,7 +193,7 @@ class StampController extends Controller
                                     if($listSigner){
                                         $params = [
                                             "param" => [
-                                                "systemId" => 'PT-DPS',
+                                                "systemId" => env('SYSTEMID'),
                                                 "orderType" => "TERA",
                                                 "email" => $email,
                                                 "payload"=> [
@@ -216,7 +216,7 @@ class StampController extends Controller
                                             ]
                                         ];
 
-                                        $signing = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocument/v1', $params);
+                                        $signing = $this->sign->callAPI(env('ALL').'/1.0/sendDocument/v1', $params);
                                         if($signing['resultCode'] == 0){
                                             $dokSign = dokSign::firstWhere('dokumen_id', $sign->id);
                                             if(!$dokSign){
@@ -330,7 +330,7 @@ class StampController extends Controller
                     $params = [
                         "requestSigning" => 
                             [
-                                "systemId" => 'PT-DPS',
+                                "systemId" => env('SYSTEMID'),
                                 "orderId" => ''.$dokSign->orderId.'',
                                 "token" => ''.$request->input('tokenCode').'',
                                 "otpCode" => ''.$request->input('otpCode').'',
@@ -338,18 +338,18 @@ class StampController extends Controller
                             ]
                     ];
     
-                    $sign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/signingPeruriTera/v1', $params);
+                    $sign = $this->sign->callAPI(env('ALL').'/1.0/signingPeruriTera/v1', $params);
                     if($sign["resultCode"] == 0){   
                         $params = [
                             "param" => 
                             [
-                                "systemId" => 'PT-DPS',
+                                "systemId" => env('SYSTEMID'),
                                 "orderId" => ''.$dokSign->orderId.'',
                             ]
                         ];
                         
                         for($i = 1; $i<=3; $i++){
-                            $viewDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
+                            $viewDoc = $this->sign->callAPI(env('ALL').'/1.0/downloadDocument/v1', $params);
                             if($viewDoc["resultCode"] == "0"){
                                 $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);
                                 $fileName = 'SIGNED_'.time().'_'.$doks->realname;

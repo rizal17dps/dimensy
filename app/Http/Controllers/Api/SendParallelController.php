@@ -139,7 +139,7 @@ class SendParallelController extends Controller
 
                             $params = [
                                 "param" => [
-                                    "systemId" => 'PT-DPS',
+                                    "systemId" => env('SYSTEMID'),
                                     //"uploader"=> auth()->user()->email,
                                     "uploader"=> $cekEmail->email,
                                     "payload"=> [
@@ -150,7 +150,7 @@ class SendParallelController extends Controller
                                 ]
                             ];
 
-                            $sendDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocumentParallel/v1', $params);
+                            $sendDoc = $this->sign->callAPI(env('ALL').'/1.0/sendDocumentParallel/v1', $params);
 
                             if($sendDoc["resultCode"] == 0){
                                 $emailLists = ListSigner::where('dokumen_id', $sign->id)->orderBy('id', 'ASC')->get();
@@ -272,11 +272,11 @@ class SendParallelController extends Controller
                                     "varLocation"=> ''.$request->input('setSignature.signer.location').'',
                                     "varReason"=> ''.$request->input('setSignature.signer.location').''
                                 ],
-                                "systemId" => 'PT-DPS'
+                                "systemId" => env('SYSTEMID')
                             ]
                         ];
                         
-                        $sendSign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/setSignature/v1', $params);
+                        $sendSign = $this->sign->callAPI(env('ALL').'/1.0/setSignature/v1', $params);
                         if($sendSign["resultCode"] == 0){
                             
                             DB::commit();
@@ -376,14 +376,14 @@ class SendParallelController extends Controller
                     $params = [
                         "requestSigning" => 
                             [
-                                "systemId" => 'PT-DPS',
+                                "systemId" => env('SYSTEMID'),
                                 "orderId" => ''.$dokSign->orderId.'',
                                 "token" => ''.$request->input('tokenCode').'',
                                 "otpCode" => ''.$request->input('otpCode').''
                             ]
                     ];
     
-                    $sign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/signingParallel/v1', $params);
+                    $sign = $this->sign->callAPI(env('ALL').'/1.0/signingParallel/v1', $params);
                     if($sign["resultCode"] == 0 && !isset($sign["data"]["orderIdNextSigner"])){   
                         $find = dokSign::where('orderId', $dokSign->orderId)->first();
                         $find->status = 'Signed';
@@ -402,7 +402,7 @@ class SendParallelController extends Controller
                             ];
 
                             for($i = 1; $i<=3; $i++){
-                                $viewDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocumentParallel/v1', $params);
+                                $viewDoc = $this->sign->callAPI(env('ALL').'/1.0/downloadDocumentParallel/v1', $params);
                                 Log::info('Hasil '.json_encode($viewDoc));
                                 if($viewDoc["resultCode"] == "0" || !isset($viewDoc["resultCode"])){
                                     $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);
@@ -452,7 +452,7 @@ class SendParallelController extends Controller
                             $params = [
                                 "param" => 
                                 [
-                                    "systemId" => "PT-DPS",
+                                    "systemId" => env('SYSTEMID'),
                                     "orderId" => ''.$dokSign->orderId.'',
                                 ]
                             ];
@@ -460,7 +460,7 @@ class SendParallelController extends Controller
                             $sukses = false;
                             set_time_limit(300);
                             for($i = 1; $i<=3; $i++){
-                                $viewDoc = $digiSign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
+                                $viewDoc = $digiSign->callAPI(env('ALL').'/1.0/downloadDocument/v1', $params);
                                 
                                 if($viewDoc["resultCode"] == "0" || !isset($viewDoc["resultCode"])){
                                     $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);

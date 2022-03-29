@@ -15,7 +15,7 @@ class SignService
 
     public function __construct(Client $client)
     {
-        $this->url = 'https://apgdev.peruri.co.id:9044/gateway/'; //'https://apgdev.peruri.co.id:9044/gateway/';
+        $this->url = env('API_PERURI'); //'https://apgdev.peruri.co.id:9044/gateway/';
         $this->http = $client;
     }
 
@@ -27,13 +27,13 @@ class SignService
             if ($token != null) {
                 $head = [
                     'content-type' => 'application/json',
-                    'x-Gateway-APIKey' => '5bc817a4-daeb-4775-b836-7554b4beb840',
+                    'x-Gateway-APIKey' => env('APIKey_PERURI'),
                     'Authorization' => 'Bearer ' . $token,
                 ];
             } else {
                 $head = [
                     'content-type' => 'application/json',
-                    'x-Gateway-APIKey' => '5bc817a4-daeb-4775-b836-7554b4beb840',
+                    'x-Gateway-APIKey' => env('APIKey_PERURI'),
                 ];
             }
 
@@ -61,7 +61,7 @@ class SignService
             // Connection exceptions are not caught by RequestException
             //Log::error($e->getResponse());
             $x['resultCode'] = "500";
-            $x['resultDesc'] = "API Gateway encountered an error";
+            $x['resultDesc'] = $e->getResponse();
             return $x;
             //dd($e->getResponse());
         }
@@ -70,14 +70,13 @@ class SignService
     public function getJwt()
     {
         return $this->getResponse(
-                'jwtSandbox/1.0/getJsonWebToken/v1',
+            env('JWT').'/1.0/getJsonWebToken/v1',
                 [
                     "param" => [
-                        "systemId" => "PT-DPS",
+                        "systemId" => env('SYSTEMID'),
                     ],
                 ]
             );
-      
     }
 
     public function callAPI(string $uri = null, array $params = [])

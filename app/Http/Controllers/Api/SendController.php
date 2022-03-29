@@ -201,7 +201,7 @@ class SendController extends Controller
                                     if($listSigner){
                                         $params = [
                                             "param" => [
-                                                "systemId" => 'PT-DPS',
+                                                "systemId" => env('SYSTEMID'),
                                                 "email" => $email,
                                                 "payload"=> [
                                                     "filename" => ''.$doks->realname.'',
@@ -223,7 +223,7 @@ class SendController extends Controller
                                             ]
                                         ];
 
-                                        $signing = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocument/v1', $params);
+                                        $signing = $this->sign->callAPI(env('ALL').'/1.0/sendDocument/v1', $params);
                                         if($signing['resultCode'] == 0){
                                             $dokSign = dokSign::firstWhere('dokumen_id', $sign->id);
                                             if(!$dokSign){
@@ -338,25 +338,25 @@ class SendController extends Controller
                     $params = [
                         "requestSigning" => 
                             [
-                                "systemId" => 'PT-DPS',
+                                "systemId" => env('SYSTEMID'),
                                 "orderId" => ''.$dokSign->orderId.'',
                                 "token" => ''.$request->input('tokenCode').'',
                                 "otpCode" => ''.$request->input('otpCode').''
                             ]
                     ];
     
-                    $sign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/signing/v1', $params);
+                    $sign = $this->sign->callAPI(env('ALL').'/1.0/signing/v1', $params);
                     if($sign["resultCode"] == 0){   
                         $params = [
                             "param" => 
                             [
-                                "systemId" => 'PT-DPS',
+                                "systemId" => env('SYSTEMID'),
                                 "orderId" => ''.$dokSign->orderId.'',
                             ]
                         ];
                         
                         for($i = 1; $i<=3; $i++){
-                            $viewDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
+                            $viewDoc = $this->sign->callAPI(env('ALL').'/1.0/downloadDocument/v1', $params);
                             if($viewDoc["resultCode"] == "0"){
                                 $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);
                                 $fileName = 'SIGNED_'.time().'_'.$doks->realname;
@@ -482,11 +482,11 @@ class SendController extends Controller
                     //dd($dok->);
                     $params = [
                         "param" => [
-                            "systemId" => 'PT-DPS',
+                            "systemId" => env('SYSTEMID'),
                             "orderId" => ''.$doks->orderId.'',
                         ]
                     ];
-                    $getOtp = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/getOtp/v1', $params);
+                    $getOtp = $this->sign->callAPI(env('ALL').'/1.0/getOtp/v1', $params);
 
                     if($getOtp["resultCode"] == "0"){
                         $data['token'] = $getOtp["data"]["token"];
