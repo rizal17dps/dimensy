@@ -139,11 +139,11 @@ class RegisterController extends Controller
                 $paramsCheck = [
                     "param" => [
                             "email" => $user->email, //aslinya $user->email
-                            "systemId"=>"PT-DPS"
+                            "systemId"=>env('SYSTEMID')
                     ]
                 ];
                 
-                $accCheck = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/checkCertificate/v1', $paramsCheck);
+                $accCheck = $this->sign->callAPI(env('ALL').'/1.0/checkCertificate/v1', $paramsCheck);
 
                 $date=date_create($user->tanggal_lahir);
                 $params = [
@@ -164,11 +164,11 @@ class RegisterController extends Controller
                             "gender"=>$request->input('gender'),
                             "placeOfBirth"=> $user->tempat_lahir,
                             "dateOfBirth"=> date_format($date,"d/m/Y"),
-                            "systemId"=>'PT-DPS'
+                            "systemId"=>env('SYSTEMID')
                     ]
                 ];   
                 
-                $regis = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/registration/v1', $params);
+                $regis = $this->sign->callAPI(env('ALL').'/1.0/registration/v1', $params);
                 if($regis["resultCode"] == "0"){
                     DB::commit();
                     return response(['code' => 0, 'message' => 'Registration Successful! Check your email for the activation email']);
@@ -232,11 +232,11 @@ class RegisterController extends Controller
                 $params = [
                     "param" => [
                             "email" => $cekEmail->email,
-                            "systemId"=>"PT-DPS"
+                            "systemId"=>env('SYSTEMID')
                     ]
                 ];   
                 
-                $regis = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/checkCertificate/v1', $params);
+                $regis = $this->sign->callAPI(env('ALL').'/1.0/checkCertificate/v1', $params);
                 $done = 0;
                 if($regis["resultCode"] == "0"){
                     DB::rollBack();
@@ -246,11 +246,11 @@ class RegisterController extends Controller
                         "param" => [
                                 "email" => $cekEmail->email,
                                 "videoStream"=> $request->input('base64video'),
-                                "systemId"=>'PT-DPS'
+                                "systemId"=>env('SYSTEMID')
                         ]
                     ];  
                     
-                    $regisEkyc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/videoVerification/v1', $params);
+                    $regisEkyc = $this->sign->callAPI(env('ALL').'/1.0/videoVerification/v1', $params);
     
                     if($regisEkyc["resultCode"] == 0){
                         $user = User::find($cekEmail->id);
@@ -324,11 +324,11 @@ class RegisterController extends Controller
                             "payload" => [
                                 "videoStream"=> $request->input('base64video'),
                             ],                            
-                            "systemId"=>'PT-DPS'
+                            "systemId"=>env('SYSTEMID')
                     ]
                 ];  
                 
-                $regisEkyc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/videoVerificationForRenewal/v1', $params);
+                $regisEkyc = $this->sign->callAPI(env('ALL').'/1.0/videoVerificationForRenewal/v1', $params);
 
                 if($regisEkyc["resultCode"] == 0){
                     $user = User::find($cekEmail->id);

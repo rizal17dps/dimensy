@@ -79,13 +79,13 @@ class SpecimentController extends Controller
 
                 $params = [
                     "param" => [
-                            "systemId"=> 'PT-DPS',
+                            "systemId"=> env('SYSTEMID'),
                             "email"=> $cekEmail->email,
                             "speciment"=> $request->input('base64sign')
                     ]
                 ];   
                 
-                $ttd = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendSpeciment/v1', $params);
+                $ttd = $this->sign->callAPI(env('ALL').'/1.0/sendSpeciment/v1', $params);
                 if($ttd["resultCode"] == "0"){
                     DB::commit();
                     return response(['code' => 0, 'message' => 'Successful']);
@@ -133,12 +133,12 @@ class SpecimentController extends Controller
             } else {
                 $params = [
                     "param" => [
-                            "systemId"=> 'PT-DPS',
+                            "systemId"=> env('SYSTEMID'),
                             "email"=> $cekEmail->email,
                     ]
                 ];   
                 
-                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/checkCertificate/v1', $params);
+                $crt = $this->sign->callAPI(env('ALL').'/1.0/checkCertificate/v1', $params);
                 if($crt["resultCode"] == "0"){
                     if($crt["data"]['isExpired'] == 1){
                         $data['isExpired'] = 'Certificate has been expired' ;
@@ -196,12 +196,12 @@ class SpecimentController extends Controller
             } else {
                 $params = [
                     "param" => [
-                            "systemId"=> 'PT-DPS',
+                            "systemId"=> env('SYSTEMID'),
                             "email"=> $cekEmail->email,
                     ]
                 ];   
                 
-                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaCheck/v1', $params);
+                $crt = $this->sign->callAPI(env('ALL').'/1.0/keylaCheck/v1', $params);
                 if($crt["resultCode"] == "0"){
                     DB::commit();
                     return response(['code' => 0, 'message' => 'Successful']);
@@ -249,12 +249,12 @@ class SpecimentController extends Controller
             } else {
                 $params = [
                     "param" => [
-                            "systemId"=> 'PT-DPS',
+                            "systemId"=> env('SYSTEMID'),
                             "email"=> $cekEmail->email,
                     ]
                 ];   
                 
-                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaRegister/v1', $params);
+                $crt = $this->sign->callAPI(env('ALL').'/1.0/keylaRegister/v1', $params);
                 if($crt["resultCode"] == "0"){
                     DB::commit();
                     return response(['code' => 0, 'message' => 'Successful', 'qrCode' => $crt["data"]["qrImage"]]);
@@ -306,13 +306,13 @@ class SpecimentController extends Controller
 
                 $params = [
                     "param" => [
-                            "systemId"=> 'PT-DPS',
+                            "systemId"=> env('SYSTEMID'),
                             "email"=> $cekEmail->email,
                             "token"=> $request->input('token'),
                     ]
                 ];   
                 
-                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaVerify/v1', $params);
+                $crt = $this->sign->callAPI(env('ALL').'/1.0/keylaVerify/v1', $params);
                 if($crt["resultCode"] == "0"){
                     DB::commit();
                     return response(['code' => 0, 'message' => 'Successful']);
@@ -364,13 +364,13 @@ class SpecimentController extends Controller
 
                 $params = [
                     "param" => [
-                            "systemId"=> 'PT-DPS',
+                            "systemId"=> env('SYSTEMID'),
                             "email"=> $cekEmail->email,
                             "qrImage"=> $request->input('qrImage'),
                     ]
                 ];   
                 
-                $crt = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/keylaDeregister/v1', $params);
+                $crt = $this->sign->callAPI(env('ALL').'/1.0/keylaDeregister/v1', $params);
                 if($crt["resultCode"] == "0"){
                     DB::commit();
                     return response(['code' => 0, 'message' => 'Successful']);

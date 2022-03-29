@@ -139,7 +139,7 @@ class SendSerialController extends Controller
 
                             $params = [
                                 "param" => [
-                                    "systemId" => 'PT-DPS',
+                                    "systemId" => env('SYSTEMID'),
                                     //"uploader"=> auth()->user()->email,
                                     "uploader"=> $cekEmail->email,
                                     "payload"=> [
@@ -150,7 +150,7 @@ class SendSerialController extends Controller
                                 ]
                             ];
 
-                            $sendDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/sendDocumentTier/v1', $params);
+                            $sendDoc = $this->sign->callAPI(env('ALL').'/1.0/sendDocumentTier/v1', $params);
 
                             if($sendDoc["resultCode"] == 0){
                                 $dokSign = dokSign::where('dokumen_id', $sign->id)->first();
@@ -268,11 +268,11 @@ class SendSerialController extends Controller
                                     "varLocation"=> ''.$request->input('setSignature.signer.location').'',
                                     "varReason"=> ''.$request->input('setSignature.signer.location').''
                                 ],
-                                "systemId" => 'PT-DPS'
+                                "systemId" => env('SYSTEMID')
                             ]
                         ];
                         
-                        $sendSign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/setSignature/v1', $params);
+                        $sendSign = $this->sign->callAPI(env('ALL').'/1.0/setSignature/v1', $params);
                         if($sendSign["resultCode"] == 0){
                             
                             DB::commit();
@@ -371,25 +371,25 @@ class SendSerialController extends Controller
                     $params = [
                         "requestSigning" => 
                             [
-                                "systemId" => 'PT-DPS',
+                                "systemId" => env('SYSTEMID'),
                                 "orderId" => ''.$dokSign->orderId.'',
                                 "token" => ''.$request->input('tokenCode').'',
                                 "otpCode" => ''.$request->input('otpCode').''
                             ]
                     ];
     
-                    $sign = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/signingTier/v1', $params);
+                    $sign = $this->sign->callAPI(env('ALL').'/1.0/signingTier/v1', $params);
                     if($sign["resultCode"] == 0 && !isset($sign["data"]["orderIdNextSigner"])){   
                         $params = [
                             "param" => 
                             [
-                                "systemId" => 'PT-DPS',
+                                "systemId" => env('SYSTEMID'),
                                 "orderId" => ''.$dokSign->orderId.'',
                             ]
                         ];
                         
                         for($i = 1; $i<=3; $i++){
-                            $viewDoc = $this->sign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
+                            $viewDoc = $this->sign->callAPI(env('ALL').'/1.0/downloadDocument/v1', $params);
                             if($viewDoc["resultCode"] == "0"){
                                 $image_base64 = base64_decode($viewDoc["data"]["base64Document"]);
                                 $fileName = 'SIGNED_'.time().'_'.$doks->realname;
@@ -443,7 +443,7 @@ class SendSerialController extends Controller
                     $params = [
                         "param" => 
                         [
-                            "systemId" => "PT-DPS",
+                            "systemId" => env('SYSTEMID'),
                             "orderId" => ''.$dokSign->orderId.'',
                         ]
                     ];
@@ -451,7 +451,7 @@ class SendSerialController extends Controller
                     $sukses = false;
                     set_time_limit(300);
                     for($i = 1; $i<=3; $i++){
-                        $download = $digiSign->callAPI('digitalSignatureFullJwtSandbox/1.0/downloadDocument/v1', $params);
+                        $download = $digiSign->callAPI(env('ALL').'/1.0/downloadDocument/v1', $params);
 
                         if($download["resultCode"] == "0" || !isset($download["resultCode"])){
                             $image_base64 = base64_decode($download["data"]["base64Document"]);
