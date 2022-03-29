@@ -328,7 +328,7 @@ class QuotaController extends Controller
             $list["antrian"] = $antrian->count();
 
             DB::commit();
-            return response(['code' => 0,'message' =>'Success', 'data' => $List]);
+            return response(['code' => 0,'message' =>'Success', 'data' => $list]);
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
