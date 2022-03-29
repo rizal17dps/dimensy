@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Base64DokModel;
 use App\Models\PricingModel;
 use App\Services\CompanyService;
 use App\Services\CekCredential;
@@ -307,6 +308,27 @@ class QuotaController extends Controller
 
             DB::commit();
             return response(['code' => 0,'message' =>'Success']);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function monitor(){
+        DB::beginTransaction();
+        try{
+            $list = [];
+
+            $countBulan = Base64DokModel::whereRaw("DATE_PART('month', created_at) = DATE_PART('month', CURRENT_DATE)")->whereRaw("DATE_PART('year', created_at) = DATE_PART('year', CURRENT_DATE)")->where('status', 2)->select('id')->get();
+            $list["bulanIni"] = $countBulan->count();
+
+            $gagal = Base64DokModel::where('status', 3)->select('id')->get();
+            $list["gagal"] = $gagal->count();
+
+            $antrian = Base64DokModel::where('status', 1)->select('id')->get();
+            $list["antrian"] = $antrian->count();
+
+            DB::commit();
+            return response(['code' => 0,'message' =>'Success', 'data' => $List]);
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
