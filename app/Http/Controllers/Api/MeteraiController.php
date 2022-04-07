@@ -259,8 +259,6 @@ class MeteraiController extends Controller
                                 if($signMeterai['errorMessage'] == 97){
                                     $cekUnusedMeterai->status = 3;
                                     $cekUnusedMeterai->save();
-                                    
-                                    $ubahStatusMeterai->status = 1;
                                 }
                                 DB::rollBack();
                                 return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
