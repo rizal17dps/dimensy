@@ -256,12 +256,9 @@ class MeteraiController extends Controller
                                 DB::commit();
                                 //
                             } else {
-                                if($keyStamp['errorMessage'] == 97){
+                                if($signMeterai['errorMessage'] == 97){
                                     $cekUnusedMeterai->status = 3;
-                                    $cekUnusedMeterai->description = $keyStamp;
                                     $cekUnusedMeterai->save();
-                                    
-                                    $ubahStatusMeterai->status = 1;
                                 }
                                 DB::rollBack();
                                 return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
