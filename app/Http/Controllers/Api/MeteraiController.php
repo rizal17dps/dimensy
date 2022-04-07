@@ -257,11 +257,12 @@ class MeteraiController extends Controller
                                 //
                             } else {
                                 if($signMeterai['errorCode'] == 97){
+                                    dd($signMeterai);
                                     $cekUnusedMeterai->status = 3;
                                     $cekUnusedMeterai->save();
                                 }
                                 DB::rollBack();
-                                return response(['code' => 95, 'message' => $signMeterai]);
+                                return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
                             }  
                         } else {
                             DB::rollBack();
