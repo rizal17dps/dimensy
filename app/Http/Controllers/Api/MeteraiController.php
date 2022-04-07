@@ -261,7 +261,7 @@ class MeteraiController extends Controller
                                     $cekUnusedMeterai->save();
                                 }
                                 DB::rollBack();
-                                return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
+                                return response(['code' => 95, 'message' => $signMeterai]);
                             }  
                         } else {
                             DB::rollBack();
