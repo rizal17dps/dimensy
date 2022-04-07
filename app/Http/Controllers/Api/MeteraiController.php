@@ -256,7 +256,7 @@ class MeteraiController extends Controller
                                 DB::commit();
                                 //
                             } else {
-                                if($signMeterai['errorMessage'] == 97){
+                                if($signMeterai['errorCode'] == 97){
                                     $cekUnusedMeterai->status = 3;
                                     $cekUnusedMeterai->save();
                                 }
