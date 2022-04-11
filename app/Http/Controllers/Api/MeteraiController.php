@@ -191,7 +191,7 @@ class MeteraiController extends Controller
                         
                         $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $user->company_id)->first();
                         $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
-dd($cekUnusedMeterai);
+
                         if($cekUnusedMeterai){
 
                             $cek = $this->meterai->getJwt();
@@ -264,8 +264,84 @@ dd($cekUnusedMeterai);
                                 return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
                             }  
                         } else {
-                            DB::rollBack();
-                            return response(['code' => 95, 'message' => "Please check the speciment meterai"]);                                
+                            $paramsSn = [
+                                "isUpload"=> false,
+                                "namadoc"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                                "namafile"=> $sign->realname,
+                                "nilaidoc"=> "10000",
+                                "snOnly"=> false,
+                                "nodoc"=> $request->input('content.noDoc'),
+                                "tgldoc"=> date_format($sign->created_at,"Y-m-d")
+                            ];
+                            
+                            $generateSn = $this->meterai->callAPI('chanel/stampv2', $paramsSn, 'stamp', 'POST');
+							
+                            if($generateSn["statusCode"] == "00"){
+                                $image_base64 = base64_decode($generateSn["result"]["image"]);
+                                $fileName = $generateSn["result"]["sn"].'.png';
+                                Storage::disk('minio')->put($user->company_id .'/dok/'.$sign->users_id.'/meterai/'.$fileName, $image_base64);
+                                
+                                $meterai = new Meterai();
+                                $meterai->serial_number = $generateSn["result"]["sn"];
+                                $meterai->path = $sign->user->company_id .'/dok/'.$sign->users_id.'/meterai/'.$fileName;
+                                $meterai->status = 0;
+                                $meterai->company_id = $sign->user->company_id;
+                                $meterai->save();
+
+                                $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
+
+                                $paramSigns = [
+                                    "certificatelevel"=> "NOT_CERTIFIED",
+                                    "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
+                                    "docpass"=> ''.$request->input('content.docpass').'',
+                                    "jwToken"=> $generateSn["token"],
+                                    "location"=> ''.$data['location'].'',
+                                    "profileName"=> "emeteraicertificateSigner",
+                                    "reason"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                                    "refToken"=> $generateSn["result"]["sn"],
+                                    "spesimenPath"=> '/sharefolder/'.$meterai->path,
+                                    "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
+                                    "visLLX"=> $data['lowerLeftX'],
+                                    "visLLY"=> $data['lowerLeftY'],
+                                    "visURX"=> $data['upperRightX'],
+                                    "visURY"=> $data['upperRightY'],
+                                    "visSignaturePage"=> $data['page'],
+                                ];
+
+                                $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
+                                if($signMeterai['errorCode'] == 0){
+                                    $cekDoks = Sign::find($sign->id);
+                                    $cekDoks->status_id = 8;
+                                    $cekDoks->name = $fileNameFinal;
+                                    $cekDoks->save();
+                
+                                    $cekMeterais = Meterai::find($meterai->id);
+                                    if($cekMeterais) {
+                                        $cekMeterais->status = 1;
+                                        $cekMeterais->dokumen_id = $sign->id;
+                                        $cekMeterais->save();
+                                    }
+
+                                    if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                                        DB::rollBack();
+                                        return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
+                                    }
+    
+                                    if(!$this->companyService->quotaKurang($quotaMeterai, $user->company_id)){
+                                        DB::rollBack();
+                                        return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
+                                    }
+
+                                    DB::commit();
+                                    //return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
+                                } else {
+                                    DB::rollBack();
+                                    return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
+                                }                        
+                            } else {
+                                DB::rollBack();
+                                return response(['code' => 97, 'message' => $generateSn]);
+                            }                                 
                         }
                         $i++;
                     }      
