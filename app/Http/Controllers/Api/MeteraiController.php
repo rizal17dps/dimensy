@@ -225,6 +225,11 @@ class MeteraiController extends Controller
                                 $cekUnusedMeterai->status = 1;
                                 $cekUnusedMeterai->dokumen_id = $sign->id;
                                 $cekUnusedMeterai->save();
+                                
+                                $base64 = new Base64DokModel();
+                                $base64->dokumen_id = $sign->id;
+                                $base64->status = 2;
+                                $base64->save();
 
                                 $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $user->company_id)->first();
 
@@ -275,7 +280,7 @@ class MeteraiController extends Controller
                             ];
                             
                             $generateSn = $this->meterai->callAPI('chanel/stampv2', $paramsSn, 'stamp', 'POST');
-							
+
                             if($generateSn["statusCode"] == "00"){
                                 $image_base64 = base64_decode($generateSn["result"]["image"]);
                                 $fileName = $generateSn["result"]["sn"].'.png';
@@ -321,6 +326,11 @@ class MeteraiController extends Controller
                                         $cekMeterais->dokumen_id = $sign->id;
                                         $cekMeterais->save();
                                     }
+
+                                    $base64 = new Base64DokModel();
+                                    $base64->dokumen_id = $sign->id;
+                                    $base64->status = 2;
+                                    $base64->save();
 
                                     if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
                                         DB::rollBack();
