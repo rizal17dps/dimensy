@@ -322,9 +322,14 @@ class MeteraiController extends Controller
                                         $cekMeterais->save();
                                     }
 
-                                    if(!$this->companyService->history($quotaMeterai, $cekEmail->id)){
+                                    if(!$this->companyService->historyPemakaian($quotaMeterai, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
                                         DB::rollBack();
-                                        return response(['code' => 98, 'message' => 'Error create History']);
+                                        return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
+                                    }
+    
+                                    if(!$this->companyService->quotaKurang($quotaMeterai, $user->company_id)){
+                                        DB::rollBack();
+                                        return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
                                     }
 
                                     DB::commit();
