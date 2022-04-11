@@ -228,6 +228,7 @@ class MeteraiController extends Controller
                                 
                                 $base64 = new Base64DokModel();
                                 $base64->dokumen_id = $sign->id;
+                                $base64->base64Doc = $sign->id;
                                 $base64->status = 2;
                                 $base64->save();
 
@@ -329,6 +330,7 @@ class MeteraiController extends Controller
 
                                     $base64 = new Base64DokModel();
                                     $base64->dokumen_id = $sign->id;
+                                    $base64->base64Doc = $sign->id;
                                     $base64->status = 2;
                                     $base64->save();
 
