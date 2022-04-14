@@ -575,4 +575,67 @@ class SendController extends Controller
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
     }
+
+    public function downloadPath(Request $request, $id) {
+        DB::beginTransaction();
+        try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            } else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+
+                $dok = Sign::find($id);
+                
+                if($dok){
+                    if($dok->status_id == 3){
+                        $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Signed')->first();
+                        if($dokSign){
+                            $data['pathDoc'] = Storage::disk('minio')->url($dok->user->company_id .'/dok/' . $dok->users_id . '/ttd/' . $dokSign->name);
+                            return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
+                        } else {
+                            return response(['code' => 96, 'message' => 'Document not found']);
+                        }                  
+                    } else if ($dok->status_id == 6) {
+                        $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Stamp')->first();
+                        if($dokSign){
+                            $data['pathDoc'] = Storage::disk('minio')->url($dok->user->company_id .'/dok/' . $dok->users_id . '/stamp/' . $dokSign->name);
+                            return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
+                        } else {
+                            return response(['code' => 96, 'message' => 'Document not found']);
+                        }    
+                    }else {
+                        $data['pathDoc'] = Storage::disk('minio')->url($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name);
+                        return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
+                    }                    
+                } else {
+                    return response(['code' => 97, 'message' => 'Document not found']);
+                }                
+            }
+            
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
 }
