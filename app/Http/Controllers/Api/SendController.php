@@ -576,7 +576,7 @@ class SendController extends Controller
         }
     }
 
-    public function downloadPath(Request $request) {
+    public function downloadPath(Request $request, $id) {
         DB::beginTransaction();
         try{
             if($this->utils->block()){
@@ -597,7 +597,7 @@ class SendController extends Controller
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
-                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                
                 DB::commit();
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             } else if(!$cekEmail){
@@ -605,11 +605,7 @@ class SendController extends Controller
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
 
-                $request->validate([
-                    'dataId' => 'required'
-                ]);
-
-                $dok = Sign::find($request->input('dataId'));
+                $dok = Sign::find($id);
                 
                 if($dok){
                     if($dok->status_id == 3){
