@@ -329,6 +329,14 @@ class QuotaController extends Controller
 
             $antrian = Base64DokModel::where('status', 1)->select('id')->get();
             $list["antrian"] = $antrian->count();
+            
+            $countGenerated = Meterai::all();
+            $list["generated"] = $countGenerated->count();
+
+            $countGagal = Meterai::where('status', 3)->select('id')->get();;
+            $list["gagalMeterai"] = $countGagal->count();
+                
+            $list["version"] = config('app.version');
 
             DB::commit();
             return response(['code' => 0,'message' =>'Success', 'data' => $list]);
