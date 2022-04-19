@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Base64DokModel;
 use App\Models\PricingModel;
+use App\Models\Meterai;
 use App\Services\CompanyService;
 use App\Services\CekCredential;
 use App\Services\DimensyService;
