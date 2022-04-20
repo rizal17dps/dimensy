@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Meterai extends Model
+class MeteraiView extends Model
 {
     use HasFactory;
 
     protected $table = 'meterai';
+    protected $visible = ['serial_number'];
 
     public function doks()
     {

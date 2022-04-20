@@ -38,4 +38,14 @@ class Sign extends Model
     {
         return $this->hasMany('App\Models\dokSign', 'dokumen_id');
     }
+
+    public function meterai()
+    {
+        return $this->hasMany('App\Models\Meterai', 'dokumen_id');
+    }
+
+    public function meteraiView()
+    {
+        return $this->hasMany('App\Models\MeteraiView', 'dokumen_id');
+    }
 }

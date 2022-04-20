@@ -71,6 +71,7 @@ Route::get('/monitor', '\App\Http\Controllers\Api\QuotaController@monitor');
 Route::get('/DocType', '\App\Http\Controllers\Api\MeteraiController@jenisDok');
 Route::post('/meteraiSigning', '\App\Http\Controllers\Api\MeteraiController@signingMeterai');
 Route::post('/generateSN', '\App\Http\Controllers\Api\MeteraiController@generateSN');
+Route::get('/cekDokSN/{id?}', '\App\Http\Controllers\Api\MeteraiController@cekDokSN');
 
 //Check Keyla
 Route::post('/checkKeyla', '\App\Http\Controllers\Api\SpecimentController@checkKeyla');
