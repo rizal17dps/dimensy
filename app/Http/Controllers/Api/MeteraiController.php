@@ -517,8 +517,6 @@ class MeteraiController extends Controller
 
                     if($dok){
                         $list = [];
-                        $meteraiSn = [];
-                        $i = 0;
                         foreach($dok as $data){                
                             array_push($list, array('dokId' => $data->id, 'fileName' => $data->realname, 'data' => $data->meteraiView));                   
                         }

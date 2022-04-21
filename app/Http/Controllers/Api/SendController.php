@@ -58,17 +58,17 @@ class SendController extends Controller
                 $user = User::where('email', $email)->first();
                 if($user){
                     if($id){
-                        $dok = Sign::where('users_id',$user->id)->where('id', $id)->get();
+                        $dok = Sign::with('meteraiView')->where('users_id',$user->id)->where('id', $id)->get();
 
                     } else {
-                        $dok = Sign::where('users_id',$user->id)->get();
+                        $dok = Sign::with('meteraiView')->where('users_id',$user->id)->get();
 
                     }
 
                     if($dok){
                         $list = [];
                         foreach($dok as $data){
-                            array_push($list, array('dataId' => $data->id, 'fileName' => $data->realname, 'status' => $data->stat->name));
+                            array_push($list, array('dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name));
                         }
                         
                         DB::commit();
