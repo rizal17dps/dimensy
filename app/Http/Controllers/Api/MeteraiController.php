@@ -535,4 +535,57 @@ class MeteraiController extends Controller
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }   
     }
+
+    public function cekSN(Request $request, $id) {
+        try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }            
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $user = User::where('email', $email)->first();
+                if($user){
+                    $params=[];
+                    $list=[];
+                    $serialNumber = $this->meterai->callAPI('api/chanel/stamp/ext?filter='.$id, $params, 'info', 'GET');
+
+                    if($serialNumber['statusCode'] == 00){
+                        foreach($serialNumber['result']['data'] as $data){                
+                            array_push($list, array('status' => $data['status'], 'fileName' => $data['file'], 'tglupdate' => $data['tglupdate']));                   
+                        }
+                        DB::commit();
+                        return response(['code' => 0, 'data' => $list ,'message' => 'Success']);
+                    } else {
+                        DB::rollBack();
+                        return response(['code' => 98, 'message' => $serialNumber['message']]);
+                    }
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'Email Not Found']);
+                }
+            }
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }   
+    }
 }
