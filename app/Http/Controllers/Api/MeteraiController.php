@@ -271,9 +271,16 @@ class MeteraiController extends Controller
                                 return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
                             }  
                         } else {
+                            $jenis = JenisDokumen::where('nama', $docType->nama)->first();
+                            if(!$jenis){
+                                $kode = $jenis->kode;
+                            } else {
+                                $kode = 3;
+                            }
+
                             $paramsSn = [
                                 "isUpload"=> false,
-                                "namadoc"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
+                                "namadoc"=> ''.$kode.'',
                                 "namafile"=> $sign->realname,
                                 "nilaidoc"=> "10000",
                                 "snOnly"=> false,
@@ -429,14 +436,17 @@ class MeteraiController extends Controller
 
                 $user = User::where('email', $email)->first();
                 if($user){
+
+                    $jenis = JenisDokumen::where('nama', $docType->nama)->first();
+                    if(!$jenis){
+                        $kode = $jenis->kode;
+                    } else {
+                        $kode = 3;
+                    }
                     
                     $params = [
-                        "namadoc"=> $docType ? $docType->nama : 'Dokumen Lain-lain',
-                        "nodoc"=> "",
+                        "namadoc"=> ''.$kode.'',
                         "tgldoc"=> date("Y-m-d"),
-                        "namejidentitas" => "KTP",
-                        "noidentitas" => $user->nik,
-                        "namedipungut" => $user->name,
                         "nilaidoc"=> "10000",
                         "namafile"=> $request->input('content.docType'),
                         "snOnly"=> false,
