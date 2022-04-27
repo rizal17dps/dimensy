@@ -18,6 +18,7 @@ use App\Models\ListSigner;
 use App\Models\Sign;
 use App\Models\Base64DokModel;
 use App\Models\PricingModel;
+use App\Models\JenisDokumen;
 use Illuminate\Support\Facades\Storage;
 
 class MeteraiController extends Controller
