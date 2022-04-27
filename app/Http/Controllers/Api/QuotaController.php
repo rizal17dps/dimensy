@@ -334,7 +334,7 @@ class QuotaController extends Controller
             $countGenerated = Meterai::all();
             $list["generated"] = $countGenerated->count();
 
-            $countGagal = Meterai::where('status', 3)->select('id')->get();;
+            $countGagal = Meterai::whereRaw("DATE_PART('day', created_at) = DATE_PART('day', CURRENT_DATE)")->whereRaw("DATE_PART('year', created_at) = DATE_PART('year', CURRENT_DATE)")->where('status', 3)->select('id')->get();;
             $list["gagalMeterai"] = $countGagal->count();
                 
             $list["version"] = config('app.version');
