@@ -197,15 +197,15 @@ class QuotaController extends Controller
             //transfer meterai
             if($request->input('paket') == 6){
                 $pindah = new Meterai();
-                $pindah->company_id = $request->input('id');
+                $pindah->company_id = 657;
                 $pindah->save();
             }
                             
-            $pricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $request->input('id'))->first();
+            $pricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', 657)->first();
             if(!$pricing){
                 $pricing = new PricingModel();
             }            
-            $pricing->company_id = $request->input('id');
+            $pricing->company_id = 657;
             $pricing->name_id = $request->input('paket');
             $pricing->price = preg_replace("/[^0-9]/", "", $request->input('price'));
             $pricing->qty = $request->input('qty');
@@ -220,35 +220,35 @@ class QuotaController extends Controller
 
             $dt2 = new DateTime("+ 1 year");
             $dateExp = $dt2->format("Y-m-d");   
-            $mapCompany = MapCompany::where('company_id', $request->input('id'))->first();
+            $mapCompany = MapCompany::where('company_id', 657)->first();
             if($mapCompany){
                 $paketId = $mapCompany->paket_id;
             } else {
                 $paket = new Paket();
-                $paket->name = 'Paket-'.$request->input('id');
+                $paket->name = 'Paket-657';
                 $paket->icon = 'no-icon';
                 $paket->durasi = '1';
                 $paket->satuan = 'Tahun';
-                $paket->company_id = $request->input('id');
+                $paket->company_id = 657;
                 $paket->save();
 
                 $storeMapCompany = new MapCompany();
                 $storeMapCompany->paket_id = $paket->id;
-                $storeMapCompany->company_id = $request->input('id');
+                $storeMapCompany->company_id = 657;
                 $storeMapCompany->expired_date = $dateExp;
                 $storeMapCompany->save();
 
                 $paketId = $paket->id;
             }
 
-            $paketDetail = PaketDetail::where('detail_name_id', $request->input('paket'))->where('company_id', $request->input('id'))->first();
+            $paketDetail = PaketDetail::where('detail_name_id', $request->input('paket'))->where('company_id', 657)->first();
             if(!$paketDetail){
                 $paketDetail = new PaketDetail();
             }            
             $paketDetail->value = $request->input('qty');
             $paketDetail->satuan = $infoDetil->satuan;
             $paketDetail->type = $infoDetil->type;
-            $paketDetail->company_id = $request->input('id');
+            $paketDetail->company_id = 657;
             $paketDetail->detail_name_id = $request->input('paket');
             $paketDetail->save();
 
@@ -257,7 +257,7 @@ class QuotaController extends Controller
             $mapPaket->paket_detial_id = $paketDetail->id;
             $mapPaket->save();
 
-            $quota = Quota::where('company_id', $request->input('id'))->where('paket_detail_id', $paketDetail->id)->first();
+            $quota = Quota::where('company_id', 657)->where('paket_detail_id', $paketDetail->id)->first();
             if($quota){
                 if($infoDetil->type == 'storage'){                
                     $quota->quota = $quota->quota + ($request->input('qty') * pow(1024, 3));
@@ -268,7 +268,7 @@ class QuotaController extends Controller
             } else {
                 $quota = new Quota();
                 $quota->paket_detail_id = $paketDetail->id;
-                $quota->company_id = $request->input('id');
+                $quota->company_id = 657;
                 if($infoDetil->type == 'storage'){                
                     $quota->quota = $request->input('qty') * pow(1024, 3);
                 } else {
