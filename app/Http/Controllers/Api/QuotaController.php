@@ -195,11 +195,6 @@ class QuotaController extends Controller
         DB::beginTransaction();
         try{
             //transfer meterai
-            if($request->input('paket') == 6){
-                $pindah = new Meterai();
-                $pindah->company_id = 657;
-                $pindah->save();
-            }
                             
             $pricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', 657)->first();
             if(!$pricing){
