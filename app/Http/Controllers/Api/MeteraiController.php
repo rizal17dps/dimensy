@@ -274,7 +274,7 @@ class MeteraiController extends Controller
                         } else {
                             $jenis = JenisDokumen::where('nama', $docType->nama)->first();
                             if(!$jenis){
-                                $kode = $jenis->kode;
+                                $kode = $jenis->nama;
                             } else {
                                 $kode = 3;
                             }
