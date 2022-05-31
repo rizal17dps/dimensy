@@ -276,7 +276,7 @@ class MeteraiController extends Controller
                             if(!$jenis){
                                 $kode = $jenis->nama;
                             } else {
-                                $kode = 3;
+                            $kode = "Surat Lainnya";
                             }
 
                             $paramsSn = [
