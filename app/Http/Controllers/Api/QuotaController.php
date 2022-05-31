@@ -272,35 +272,7 @@ class QuotaController extends Controller
                 $quota->all = $request->input('qty');
             }
             
-            $quota->save();       
-            
-            $cekSisaQuota->quota = $cekSisaQuota->quota - $pengurangan;
-            $cekSisaQuota->save();
-
-            // if($request->input('paket') == 6){
-            //     $Basepricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $cekEmail->company_id)->first();
-
-            //     for($i = 1; $i <= $request->input('qty'); $i++){
-            //         if(!$companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
-            //             DB::rollBack();
-            //             throw new \Exception('Error Create History Pemakaian', 500);
-            //         }
-            //     } 
-            // } else {
-            //     if(!$companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, "Transfer quota sebesar ".$request->input('qty')."ke ".$request->input('nama'))){
-            //         DB::rollBack();
-            //         throw new \Exception('Error Create History Pemakaian', 500);
-            //     }
-            // } 
-            
-            $Basepricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', $cekEmail->company_id)->first();
-
-                for($i = 1; $i <= $request->input('qty'); $i++){
-                    if(!$this->companyService->historyPemakaian($cekMapCompany->id, $cekEmail->id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
-                        DB::rollBack();
-                        return response(['code' => 98, 'message' => 'Error Create History Pemakaian']);
-                    }
-                } 
+            $quota->save();                
 
             DB::commit();
             return response(['code' => 0,'message' =>'Success']);
