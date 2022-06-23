@@ -276,7 +276,7 @@ class MeteraiController extends Controller
                             if(!$jenis){
                                 $kode = $jenis->nama;
                             } else {
-                            $kode = "Surat Lainnya";
+                                $kode = "Surat Lainnya";
                             }
 
                             $paramsSn = [
@@ -579,7 +579,6 @@ class MeteraiController extends Controller
                     $params=[];
                     $list=[];
                     $serialNumber = $this->meterai->callAPI('api/chanel/stamp/ext?filter='.$id, $params, 'info', 'GET');
-
                     if($serialNumber['statusCode'] == 00){
                         foreach($serialNumber['result']['data'] as $data){                
                             array_push($list, array('status' => $data['status'], 'fileName' => $data['file'], 'tglupdate' => $data['tglupdate']));                   
