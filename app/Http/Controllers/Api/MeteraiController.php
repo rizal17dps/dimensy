@@ -579,16 +579,21 @@ class MeteraiController extends Controller
                     $params=[];
                     $list=[];
                     $serialNumber = $this->meterai->callAPI('api/chanel/stamp/ext?filter='.$id, $params, 'info', 'GET');
-                    if($serialNumber['statusCode'] == 00){
-                        foreach($serialNumber['result']['data'] as $data){                
-                            array_push($list, array('status' => $data['status'], 'fileName' => $data['file'], 'tglupdate' => $data['tglupdate']));                   
+                    if(isset($serialNumber['statusCode'])){
+                        if($serialNumber['statusCode'] == 00){
+                            foreach($serialNumber['result']['data'] as $data){                
+                                array_push($list, array('status' => $data['status'], 'fileName' => $data['file'], 'tglupdate' => $data['tglupdate']));                   
+                            }
+                            DB::commit();
+                            return response(['code' => 0, 'data' => $list ,'message' => 'Success']);
+                        } else {
+                            DB::rollBack();
+                            return response(['code' => 98, 'message' => $serialNumber['message']]);
                         }
-                        DB::commit();
-                        return response(['code' => 0, 'data' => $list ,'message' => 'Success']);
                     } else {
                         DB::rollBack();
-                        return response(['code' => 98, 'message' => $serialNumber['message']]);
-                    }
+                        return response(['code' => 98, 'message' => 'Cannot connect to peruri']);
+                    }                    
                 } else {
                     DB::rollBack();
                     return response(['code' => 98, 'message' => 'Email Not Found']);
