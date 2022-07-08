@@ -272,11 +272,15 @@ class MeteraiController extends Controller
                                 return response(['code' => 95, 'message' => $signMeterai['errorMessage']]);
                             }  
                         } else {
-                            $jenis = JenisDokumen::where('nama', $docType->nama)->first();
-                            if(!$jenis){
-                                $kode = $jenis->nama;
+                            if($docType){
+                                $jenis = JenisDokumen::where('nama', $docType->nama)->first();
+                                if(!$jenis){
+                                    $kode = $jenis->kode;
+                                } else {
+                                    $kode = 3;
+                                }
                             } else {
-                                $kode = "Surat Lainnya";
+                                $kode = 3;
                             }
 
                             $paramsSn = [
