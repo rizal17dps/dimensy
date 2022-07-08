@@ -291,17 +291,17 @@ class QuotaController extends Controller
 
             $countHari = Base64DokModel::whereRaw("DATE(created_at) = CURRENT_DATE")->where('status', 2)->select('id')->get();
             $list["hariIni"] = $countHari->count();
-
-            $gagal = Base64DokModel::where('status', 3)->select('id')->get();
+    
+            $gagal = Base64DokModel::whereRaw("DATE_PART('month', created_at) = DATE_PART('month', CURRENT_DATE)")->whereRaw("DATE_PART('year', created_at) = DATE_PART('year', CURRENT_DATE)")->where('status', 3)->select('id')->get();
             $list["gagal"] = $gagal->count();
-
+    
             $antrian = Base64DokModel::where('status', 1)->select('id')->get();
             $list["antrian"] = $antrian->count();
-            
+
             $countGenerated = Meterai::all();
             $list["generated"] = $countGenerated->count();
 
-            $countGagal = Meterai::whereRaw("DATE_PART('day', created_at) = DATE_PART('day', CURRENT_DATE)")->whereRaw("DATE_PART('year', created_at) = DATE_PART('year', CURRENT_DATE)")->where('status', 3)->select('id')->get();;
+            $countGagal = Base64DokModel::whereRaw("DATE(created_at) = CURRENT_DATE")->where('status', 3)->select('id')->get();;
             $list["gagalMeterai"] = $countGagal->count();
                 
             $list["version"] = config('app.version');
