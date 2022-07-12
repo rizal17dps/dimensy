@@ -294,7 +294,7 @@ class MeteraiController extends Controller
                             ];
                             
                             $generateSn = $this->meterai->callAPI('chanel/stampv2', $paramsSn, 'stamp', 'POST');
-                            dd($generateSn);
+
                             if($generateSn["statusCode"] == "00"){
                                 $image_base64 = base64_decode($generateSn["result"]["image"]);
                                 $fileName = $generateSn["result"]["sn"].'.png';
