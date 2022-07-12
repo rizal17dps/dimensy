@@ -14,8 +14,8 @@ class MeteraiService
 
     public function __construct(Client $client)
     {
-        $this->urlInfo = "https://backendservicedev.scm.perurica.co.id/"; //'https://backendservicedev.scm.perurica.co.id/';
-        $this->urlStamp = "https://stampv2dev.scm.perurica.co.id/"; //'https://stampv2dev.scm.perurica.co.id/';
+        $this->urlInfo = env('API_METERAI_LOGIN'); //'https://backendservicedev.scm.perurica.co.id/';
+        $this->urlStamp = env('API_METERAI_STAMP'); //'https://stampv2dev.scm.perurica.co.id/';
         $this->urlKeyStamp = env('API_METERAI_KEYSTAMP'); //'http://192.168.200.205:8888/';
         $this->http = $client;
     }
