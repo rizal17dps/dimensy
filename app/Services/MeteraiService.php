@@ -80,8 +80,8 @@ class MeteraiService
         return $this->getResponse(
                 'api/users/login',
                 [
-                    "user" => "dev@dimensy.id",
-                    "password" => "P@ssw0rd",
+                    "user" => env('API_METERAI_UNAME'),
+                    "password" => env('API_METERAI_PASSWORD'),
                 ]
             );
       
