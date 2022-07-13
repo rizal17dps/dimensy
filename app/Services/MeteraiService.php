@@ -56,20 +56,20 @@ class MeteraiService
             } 
 
         } catch (\ClientErrorResponseException $e) {
-            $x['statusCode'] = "408";
+            $x['errorCode'] = "408";
             $x['message'] = $e->getResponse()->getBody(true);
             return $x;
         } catch (ConnectException $e) {
             // Connection exceptions are not caught by RequestException
-            $x['statusCode'] = "408";
+            $x['errorCode'] = "408";
             $x['message'] = $e->getMessage();
             return $x;
             //die;
         } catch (RequestException $e) {
             // Connection exceptions are not caught by RequestException
             //Log::error($e->getResponse());
-            $x['statusCode'] = "500";
-            $x['message'] = "API Gateway encountered an error";
+            $x['errorCode'] = "500";
+            $x['message'] = $e->getMessage();
             return $x;
             //dd($e->getResponse());
         }
