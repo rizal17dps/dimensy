@@ -609,7 +609,7 @@ class MeteraiController extends Controller
         }   
     }
 
-    public function insertQuota(){
+    public function insertQuota(Request $request){
         try{
             $image_base64 = base64_decode($request->input('base64'));
             $fileName = $request->input('sn').'.png';
