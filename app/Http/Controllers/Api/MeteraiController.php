@@ -193,7 +193,7 @@ class MeteraiController extends Controller
                         
                         $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $user->company_id)->first();
                         $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
-
+                        dd($cekUnusedMeterai);
                         if($cekUnusedMeterai){
 
                             $cek = $this->meterai->getJwt();
