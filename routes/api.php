@@ -70,9 +70,11 @@ Route::get('/monitor', '\App\Http\Controllers\Api\QuotaController@monitor');
 //Meterai
 Route::get('/DocType', '\App\Http\Controllers\Api\MeteraiController@jenisDok');
 Route::post('/meteraiSigning', '\App\Http\Controllers\Api\MeteraiController@signingMeterai');
+Route::post('/insertQuota', '\App\Http\Controllers\Api\MeteraiController@insertQuota');
 Route::post('/generateSN', '\App\Http\Controllers\Api\MeteraiController@generateSN');
 Route::get('/cekDokSN/{id?}', '\App\Http\Controllers\Api\MeteraiController@cekDokSN');
 Route::get('/cekSN/{id}', '\App\Http\Controllers\Api\MeteraiController@cekSN');
+
 
 //Check Keyla
 Route::post('/checkKeyla', '\App\Http\Controllers\Api\SpecimentController@checkKeyla');

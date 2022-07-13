@@ -215,8 +215,7 @@ class MeteraiController extends Controller
                                 "visURY"=> $data['upperRightY'],
                                 "visSignaturePage"=> $data['page'],
                             ];
-
-                            dd('/sharefolder/'.$cekUnusedMeterai->path);
+                            
                             $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
                             
                             if($signMeterai['errorCode'] == 0){
@@ -608,5 +607,24 @@ class MeteraiController extends Controller
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }   
+    }
+
+    public function insertQuota(){
+        try{
+            $image_base64 = base64_decode($request->input('base64'));
+            $fileName = $request->input('sn').'.png';
+            Storage::disk('minio')->put('657/dok/1/meterai/'.$fileName, $image_base64);
+    
+            $insertMeterai = new Meterai();
+            $insertMeterai->serial_number = $request->input('sn');
+            $insertMeterai->path = '657/dok/1/meterai/'.$fileName;
+            $insertMeterai->status = 0;
+            $insertMeterai->company_id = 657;
+            $insertMeterai->save();
+            return response(['code' => 0, 'message' => 'Sukses']);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+        
     }
 }
