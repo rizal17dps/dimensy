@@ -193,6 +193,7 @@ class MeteraiController extends Controller
                         
                         $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $user->company_id)->first();
                         $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
+
                         if($cekUnusedMeterai){
 
                             $cek = $this->meterai->getJwt();
@@ -215,8 +216,9 @@ class MeteraiController extends Controller
                                 "visSignaturePage"=> $data['page'],
                             ];
 
+                            dd('/sharefolder/'.$cekUnusedMeterai->path);
                             $signMeterai = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $paramSigns, 'keyStamp', 'POST');
-                            dd($signMeterai);
+                            
                             if($signMeterai['errorCode'] == 0){
                                 $cekDoks = Sign::find($sign->id);
                                 $cekDoks->status_id = 8;
