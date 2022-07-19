@@ -16,6 +16,7 @@ use App\Models\Meterai;
 use App\Models\MeteraiView;
 use App\Models\ListSigner; 
 use App\Models\Sign;
+use App\Models\Quota;
 use App\Models\Base64DokModel;
 use App\Models\PricingModel;
 use App\Models\JenisDokumen;
@@ -615,12 +616,21 @@ class MeteraiController extends Controller
             $fileName = $request->input('sn').'.png';
             Storage::disk('minio')->put('23/dok/24/meterai/'.$fileName, $image_base64);
     
-            $insertMeterai = new Meterai();
-            $insertMeterai->serial_number = $request->input('sn');
-            $insertMeterai->path = '23/dok/24/meterai/'.$fileName;
-            $insertMeterai->status = 0;
-            $insertMeterai->company_id = 23;
-            $insertMeterai->save();
+
+            $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
+            if(!$insertMeterai){
+                $insertMeterai = new Meterai();
+                $insertMeterai->serial_number = $request->input('sn');
+                $insertMeterai->path = '23/dok/24/meterai/'.$fileName;
+                $insertMeterai->status = 0;
+                $insertMeterai->company_id = 23;
+                $insertMeterai->save();
+            }
+
+            $insertQuota = Quota::where('company_id', 23)->first();
+            $insertQuota->all = $insertQuota->all + 1;
+            $insertQuota->quota = $insertQuota->quota + 1;
+            $insertQuota->save();
             return response(['code' => 0, 'message' => 'Sukses']);
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
