@@ -613,13 +613,13 @@ class MeteraiController extends Controller
         try{
             $image_base64 = base64_decode($request->input('base64'));
             $fileName = $request->input('sn').'.png';
-            Storage::disk('minio')->put('657/dok/1/meterai/'.$fileName, $image_base64);
+            Storage::disk('minio')->put('23/dok/24/meterai/'.$fileName, $image_base64);
     
             $insertMeterai = new Meterai();
             $insertMeterai->serial_number = $request->input('sn');
-            $insertMeterai->path = '657/dok/1/meterai/'.$fileName;
+            $insertMeterai->path = '23/dok/24/meterai/'.$fileName;
             $insertMeterai->status = 0;
-            $insertMeterai->company_id = 657;
+            $insertMeterai->company_id = 23;
             $insertMeterai->save();
             return response(['code' => 0, 'message' => 'Sukses']);
         } catch(\Exception $e) {
