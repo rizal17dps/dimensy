@@ -18,47 +18,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/login', '\App\Http\Controllers\Api\AuthController@login');
-
-Route::get('/v1/checkinfo/token', '\App\Http\Controllers\Api\AuthController@login');
-
 //SingleDocument
 Route::get('/getDocument/{id?}', '\App\Http\Controllers\Api\SendController@getDocument');
-Route::post('/sendDocument', '\App\Http\Controllers\Api\SendController@sendDocument');
-Route::post('/signing', '\App\Http\Controllers\Api\SendController@signing');
-Route::post('/getOtp', '\App\Http\Controllers\Api\SendController@getOtp');
 Route::post('/download', '\App\Http\Controllers\Api\SendController@download');
 Route::get('/getFile/{id}', '\App\Http\Controllers\Api\SendController@downloadPath');
-
-//BulkUploadDok
-Route::post('/sendBulkDocument', '\App\Http\Controllers\Api\SendBulkController@sendDocument');
-Route::post('/getOtpBulk', '\App\Http\Controllers\Api\SendBulkController@getOtp');
-Route::post('/signingBulk', '\App\Http\Controllers\Api\SendBulkController@signing');
-
-//Serial Sign
-Route::post('/sendDocumentSerial', '\App\Http\Controllers\Api\SendSerialController@sendDocument');
-Route::post('/setSignatureSerial', '\App\Http\Controllers\Api\SendSerialController@setSignature');
-Route::post('/signingSerial', '\App\Http\Controllers\Api\SendSerialController@signingSerial');
-
-//Paralel Sign
-Route::post('/sendDocumentParallel', '\App\Http\Controllers\Api\SendParallelController@sendDocument');
-Route::post('/setSignatureParallel', '\App\Http\Controllers\Api\SendParallelController@setSignature');
-Route::post('/signingParallel', '\App\Http\Controllers\Api\SendSerialController@signingParallel');
-
-//Stamp
-Route::post('/sendStamp', '\App\Http\Controllers\Api\StampController@sendStamp');
-Route::post('/signingStamp', '\App\Http\Controllers\Api\StampController@signing');
-
-//Register User
-Route::post('/register', '\App\Http\Controllers\Api\RegisterController@registerUser');
-Route::post('/verification', '\App\Http\Controllers\Api\RegisterController@verification');
-
-//Create Speciment
-Route::post('/speciment', '\App\Http\Controllers\Api\SpecimentController@createSpeciment');
-
-//cek Certificate
-Route::post('/certificate', '\App\Http\Controllers\Api\SpecimentController@certificate');
-Route::post('/renewal', '\App\Http\Controllers\Api\RegisterController@renewal');
 
 //cek quota
 Route::get('/quota', '\App\Http\Controllers\Api\QuotaController@cekQuota');
@@ -68,7 +31,6 @@ Route::post('/transfer', '\App\Http\Controllers\Api\QuotaController@transfer');
 Route::get('/monitor', '\App\Http\Controllers\Api\QuotaController@monitor');
 Route::get('/cekDokGagal', '\App\Http\Controllers\Api\QuotaController@cekDokGagal');
 Route::get('/insertStatus/{id}', '\App\Http\Controllers\Api\QuotaController@insertStatus');
-
 
 
 //Meterai
@@ -83,10 +45,4 @@ Route::get('/cekGagalStamp', '\App\Http\Controllers\Api\QuotaController@cekGagal
 Route::get('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateStamp');
 Route::post('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateDok');
 
-
-//Check Keyla
-Route::post('/checkKeyla', '\App\Http\Controllers\Api\SpecimentController@checkKeyla');
-Route::post('/registerKeyla', '\App\Http\Controllers\Api\SpecimentController@registerKeyla');
-Route::post('/verifKeyla', '\App\Http\Controllers\Api\SpecimentController@verifKeyla');
-Route::post('/unregisterKeyla', '\App\Http\Controllers\Api\SpecimentController@unregisterKeyla');
 
