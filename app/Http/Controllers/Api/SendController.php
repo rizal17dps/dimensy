@@ -32,7 +32,7 @@ class SendController extends Controller
             if($this->utils->block()){
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
-            
+
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -42,7 +42,8 @@ class SendController extends Controller
 
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
-            }            
+            }
+
 
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
@@ -58,17 +59,19 @@ class SendController extends Controller
                 $user = User::where('email', $email)->first();
                 if($user){
                     if($id){
-                        $dok = Sign::with('meteraiView')->where('users_id',$user->id)->where('id', $id)->get();
+                        $dok = Sign::with('meteraiView', 'descView')->where('users_id',$user->id)->where('id', $id)->get();
+
                     } else {
-                        $dok = Sign::with('meteraiView')->where('users_id',$user->id)->get();
+                        $dok = Sign::with('meteraiView', 'descView')->where('users_id',$user->id)->get();
+
                     }
 
                     if($dok){
                         $list = [];
                         foreach($dok as $data){
-                            array_push($list, array('dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name));
+                            array_push($list, array('dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView));
                         }
-                        
+
                         DB::commit();
                         return response(['code' => 0, 'data' => $list ,'message' => 'Success']);
                     } else {
@@ -82,7 +85,7 @@ class SendController extends Controller
             }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
-        }        
+        }
     }
 
     public function download(Request $request) {
