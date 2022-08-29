@@ -48,4 +48,9 @@ class Sign extends Model
     {
         return $this->hasMany('App\Models\MeteraiView', 'dokumen_id');
     }
+
+    public function descView()
+    {
+        return $this->hasMany('App\Models\DescView', 'dokumen_id');
+    }
 }

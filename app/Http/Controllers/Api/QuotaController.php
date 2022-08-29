@@ -14,6 +14,7 @@ use App\Services\Utils;
 use App\Models\MapCompany;
 use App\Models\User;
 use App\Models\Quota;
+use App\Models\Status;
 use Illuminate\Support\Facades\DB;
 
 class QuotaController extends Controller
@@ -311,5 +312,28 @@ class QuotaController extends Controller
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
+    }
+
+    public function cekGagalStamp(){
+        DB::beginTransaction();
+        try{
+            $data = Meterai::where("status", 3)->get();            
+            
+            return response(['code' => 0,'message' =>'Success', 'data' => $data]);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function cekDokGagal() {
+        $a = Base64DokModel::whereRaw("DATE(created_at) = CURRENT_DATE")->where('status', 3)->select('id')->get();
+        return response(['code' => 0,'message' =>'Success', 'data' => $a]);
+    }
+
+    public function insertStatus($id) {
+        $a = Sign::find($id);
+        $a->status_id = 9;
+        $a->save();
+        return response(['code' => 0,'message' =>'Success']);
     }
 }

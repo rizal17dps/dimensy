@@ -10,6 +10,7 @@ use App\Models\ListSigner;
 use App\Models\dokSign;
 use App\Models\MapCompany;
 use App\Services\CekCredential;
+use App\Models\Base64DokModel;
 use App\Services\Utils;
 use App\Services\SignService;
 use App\Services\CompanyService;
@@ -59,10 +60,8 @@ class SendController extends Controller
                 if($user){
                     if($id){
                         $dok = Sign::with('meteraiView')->where('users_id',$user->id)->where('id', $id)->get();
-
                     } else {
                         $dok = Sign::with('meteraiView')->where('users_id',$user->id)->get();
-
                     }
 
                     if($dok){
@@ -545,25 +544,12 @@ class SendController extends Controller
                 $dok = Sign::find($request->input('dataId'));
                 
                 if($dok){
-                    if($dok->status_id == 3){
-                        $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Signed')->first();
-                        if($dokSign){
-                            $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/ttd/' . $dokSign->name));
-                            return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
-                        } else {
-                            return response(['code' => 96, 'message' => 'Document not found']);
-                        }                  
-                    } else if ($dok->status_id == 6) {
-                        $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Stamp')->first();
-                        if($dokSign){
-                            $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/stamp/' . $dokSign->name));
-                            return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
-                        } else {
-                            return response(['code' => 96, 'message' => 'Document not found']);
-                        }    
-                    }else {
+                    if($dok->status_id == 8) {
                         $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
                         return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
+                    } else {
+                        //$data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
+                        return response(['code' => 10, 'message' => 'Dokumen masih dalam proses antrian']);
                     }                    
                 } else {
                     return response(['code' => 97, 'message' => 'Document not found']);

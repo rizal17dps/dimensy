@@ -66,6 +66,10 @@ Route::post('/cekSingleQuota', '\App\Http\Controllers\Api\QuotaController@cekSin
 Route::post('/historyTrans', '\App\Http\Controllers\Api\QuotaController@historyTrans');
 Route::post('/transfer', '\App\Http\Controllers\Api\QuotaController@transfer');
 Route::get('/monitor', '\App\Http\Controllers\Api\QuotaController@monitor');
+Route::get('/cekDokGagal', '\App\Http\Controllers\Api\QuotaController@cekDokGagal');
+Route::get('/insertStatus/{id}', '\App\Http\Controllers\Api\QuotaController@insertStatus');
+
+
 
 //Meterai
 Route::get('/DocType', '\App\Http\Controllers\Api\MeteraiController@jenisDok');
@@ -74,6 +78,10 @@ Route::post('/insertQuota', '\App\Http\Controllers\Api\MeteraiController@insertQ
 Route::post('/generateSN', '\App\Http\Controllers\Api\MeteraiController@generateSN');
 Route::get('/cekDokSN/{id?}', '\App\Http\Controllers\Api\MeteraiController@cekDokSN');
 Route::get('/cekSN/{id}', '\App\Http\Controllers\Api\MeteraiController@cekSN');
+Route::get('/cekSNgagal', '\App\Http\Controllers\Api\MeteraiController@cekSNgagal');
+Route::get('/cekGagalStamp', '\App\Http\Controllers\Api\QuotaController@cekGagalStamp');
+Route::get('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateStamp');
+Route::post('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateDok');
 
 
 //Check Keyla
@@ -81,3 +89,4 @@ Route::post('/checkKeyla', '\App\Http\Controllers\Api\SpecimentController@checkK
 Route::post('/registerKeyla', '\App\Http\Controllers\Api\SpecimentController@registerKeyla');
 Route::post('/verifKeyla', '\App\Http\Controllers\Api\SpecimentController@verifKeyla');
 Route::post('/unregisterKeyla', '\App\Http\Controllers\Api\SpecimentController@unregisterKeyla');
+
