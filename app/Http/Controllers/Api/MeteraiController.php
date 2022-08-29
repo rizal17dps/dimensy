@@ -119,23 +119,6 @@ class MeteraiController extends Controller
                     }
                 }
 
-                //check ke dimensy
-                /*$paramQuota = [
-                    "quota_id"=> "6"
-                ];
-
-                $quotaSisa = $this->dimensyService->callAPI('api/cekSingleQuota', $paramQuota);
-                
-                if($quotaSisa['code'] == 0){
-                    if($quotaSisa['data'] <= 0){
-                        DB::rollBack();
-                        return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
-                    }                    
-                } else {
-                    DB::rollBack();
-                    return response(['code' => 98, 'message' => 'Error Check Quota']);
-                }*/
-
                 //check quota local
                 if($this->companyService->cek($quotaMeterai, $cekEmail->id)){
                     DB::rollBack();
