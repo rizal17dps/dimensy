@@ -131,7 +131,7 @@ class MeteraiController extends Controller
                         'content' => 'required|array',
                         'content.filename' => 'required|max:255',
                         'content.base64Doc' => 'required',
-                        'content.docType' => 'required',
+                        'content.docType' => 'required|max:255',
                         'content.signer' => 'array|min:1',
                         'content.signer.*.lowerLeftX' => 'required|numeric|max:1000',
                         'content.signer.*.lowerLeftY' => 'required|numeric|max:1000',
