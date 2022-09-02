@@ -164,7 +164,7 @@ class MeteraiController extends Controller
 
                         $sign = new Sign();
                         $sign->name = $fileName;
-                        $sign->realname = $request->input('content.filename');
+                        $sign->realname = addslashes($request->input('content.filename'));
                         $sign->users_id = $user->id;
                         $sign->step = 1;
                         $sign->tipe = 5;
