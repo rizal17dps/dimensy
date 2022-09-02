@@ -129,7 +129,7 @@ class MeteraiController extends Controller
                 if($user){
                     $request->validate([
                         'content' => 'required|array',
-                        'content.filename' => 'required|max:255',
+                        'content.filename' => 'required|max:255|regex:/^[a-zA-Z0-9_.-]+$/u',
                         'content.base64Doc' => 'required',
                         'content.docType' => 'required|max:255',
                         'content.signer' => 'array|min:1',
