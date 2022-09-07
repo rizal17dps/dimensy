@@ -342,22 +342,44 @@ class QuotaController extends Controller
 
     public function invalidSerialNumber(Request $request) {
         try{
-            $image_base64 = base64_decode($request->input('base64'));
-            $userId = User::where('company_id', $request->input('company_id'))->first();
-            $fileName = $request->input('sn').'.png';
-            Storage::disk('minio')->put($request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName, $image_base64);    
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
 
-            $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
-            if(!$insertMeterai){
-                $insertMeterai = new Meterai();
-                $insertMeterai->serial_number = $request->input('sn');
-                $insertMeterai->path = $request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName;
-                $insertMeterai->status = 0;
-                $insertMeterai->company_id = $request->input('company_id');
-                $insertMeterai->save();
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
             }
 
-            return response(['code' => 0, 'message' => 'Sukses']);
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $image_base64 = base64_decode($request->input('base64'));
+                $userId = User::where('company_id', $request->input('company_id'))->first();
+                $fileName = $request->input('sn').'.png';
+                Storage::disk('minio')->put($request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName, $image_base64);    
+
+                $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
+                if(!$insertMeterai){
+                    $insertMeterai = new Meterai();
+                    $insertMeterai->serial_number = $request->input('sn');
+                    $insertMeterai->path = $request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName;
+                    $insertMeterai->status = 0;
+                    $insertMeterai->company_id = $request->input('company_id');
+                    $insertMeterai->save();
+                }
+
+                return response(['code' => 0, 'message' => 'Sukses']);
+            }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         } 
@@ -365,8 +387,30 @@ class QuotaController extends Controller
 
     public function cekUsedSN(Request $request) {
         try{
-            $meterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 1)->get();
-            return response(['code' => 0, 'message' => 'Sukses', "total" => $meterai->count(), "data" => $meterai]);
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $meterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 1)->get();
+                return response(['code' => 0, 'message' => 'Sukses', "total" => $meterai->count(), "data" => $meterai]);
+            }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
@@ -374,8 +418,30 @@ class QuotaController extends Controller
 
     public function cekUnusedSN(Request $request) {
         try{
-            $meterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 0)->get();
-            return response(['code' => 0, 'message' => 'Sukses', "total" => $meterai->count(), "data" => $meterai]);
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $meterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 0)->get();
+                return response(['code' => 0, 'message' => 'Sukses', "total" => $meterai->count(), "data" => $meterai]);
+            }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
@@ -383,25 +449,47 @@ class QuotaController extends Controller
 
     public function baseQuota(Request $request) {
         try{
-            $paketDetail = Quota::join('paket_detail', 'paket_detail.id', '=', 'quota_company.paket_detail_id')->where('detail_name_id', 6)->where('quota_company.company_id', $request->input('company_id'))->select('paket_detail.id')->first();
-            $quotaCurrent = Quota::where('paket_detail_id', $paketDetail->id)->where('company_id', $request->input('company_id'))->first();
-            $penggunaanMeterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 1)->count();
-            $kurangSeharusnya = $quotaCurrent->all - $penggunaanMeterai;
-            if($kurangSeharusnya > $quotaCurrent->quota) {
-                $selisih = $kurangSeharusnya - $quotaCurrent->quota;
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
 
-                $quotaCurrent->quota = $quotaCurrent->quota + $selisih;
-                $quotaCurrent->save();
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
 
-                return response(['code' => 0, 'message' => 'Terdapat penambahan data', 'data' => $selisih]);
-            } else if($kurangSeharusnya < $quotaCurrent->quota) {
-                $selisih = $quotaCurrent->quota - $kurangSeharusnya;
-                $quotaCurrent->quota = $quotaCurrent->quota - $selisih;
-                $quotaCurrent->save();
-
-                return response(['code' => 0, 'message' => 'Terdapat pengurangan data', 'data' => $selisih]);
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
-                return response(['code' => 2, 'message' => 'tidak ada selisih']);
+                $paketDetail = Quota::join('paket_detail', 'paket_detail.id', '=', 'quota_company.paket_detail_id')->where('detail_name_id', 6)->where('quota_company.company_id', $request->input('company_id'))->select('paket_detail.id')->first();
+                $quotaCurrent = Quota::where('paket_detail_id', $paketDetail->id)->where('company_id', $request->input('company_id'))->first();
+                $penggunaanMeterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 1)->count();
+                $kurangSeharusnya = $quotaCurrent->all - $penggunaanMeterai;
+                if($kurangSeharusnya > $quotaCurrent->quota) {
+                    $selisih = $kurangSeharusnya - $quotaCurrent->quota;
+
+                    $quotaCurrent->quota = $quotaCurrent->quota + $selisih;
+                    $quotaCurrent->save();
+
+                    return response(['code' => 0, 'message' => 'Terdapat penambahan data', 'data' => $selisih]);
+                } else if($kurangSeharusnya < $quotaCurrent->quota) {
+                    $selisih = $quotaCurrent->quota - $kurangSeharusnya;
+                    $quotaCurrent->quota = $quotaCurrent->quota - $selisih;
+                    $quotaCurrent->save();
+
+                    return response(['code' => 0, 'message' => 'Terdapat pengurangan data', 'data' => $selisih]);
+                } else {
+                    return response(['code' => 2, 'message' => 'tidak ada selisih']);
+                }
             }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
@@ -409,7 +497,29 @@ class QuotaController extends Controller
     }
 
     public function cekCompanyId() {
-        $cekCompany = Company::select('id', 'name')->get();
-        return response(['code' => 0, 'data' => $cekCompany]);
+        $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $cekCompany = Company::select('id', 'name')->get();
+                return response(['code' => 0, 'data' => $cekCompany]);
+            }
     }
 }
