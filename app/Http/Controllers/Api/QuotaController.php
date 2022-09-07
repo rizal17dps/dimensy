@@ -496,7 +496,7 @@ class QuotaController extends Controller
         }
     }
 
-    public function cekCompanyId() {
+    public function cekCompanyId(Request $request) {
         $header = $request->header('apiKey');
             $email = $request->header('email');
 
