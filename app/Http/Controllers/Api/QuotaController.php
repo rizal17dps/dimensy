@@ -15,7 +15,10 @@ use App\Models\MapCompany;
 use App\Models\User;
 use App\Models\Quota;
 use App\Models\Status;
+use App\Models\PaketDetail;
+use App\Models\Company;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class QuotaController extends Controller
 {
@@ -326,7 +329,7 @@ class QuotaController extends Controller
     }
 
     public function cekDokGagal() {
-        $a = Base64DokModel::whereRaw("DATE(created_at) = CURRENT_DATE")->where('status', 3)->select('id')->get();
+        $a = Base64DokModel::where('status', 3)->select('id')->get();
         return response(['code' => 0,'message' =>'Success', 'data' => $a]);
     }
 
@@ -335,5 +338,78 @@ class QuotaController extends Controller
         $a->status_id = 9;
         $a->save();
         return response(['code' => 0,'message' =>'Success']);
+    }
+
+    public function invalidSerialNumber(Request $request) {
+        try{
+            $image_base64 = base64_decode($request->input('base64'));
+            $userId = User::where('company_id', $request->input('company_id'))->first();
+            $fileName = $request->input('sn').'.png';
+            Storage::disk('minio')->put($request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName, $image_base64);    
+
+            $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
+            if(!$insertMeterai){
+                $insertMeterai = new Meterai();
+                $insertMeterai->serial_number = $request->input('sn');
+                $insertMeterai->path = $request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName;
+                $insertMeterai->status = 0;
+                $insertMeterai->company_id = $request->input('company_id');
+                $insertMeterai->save();
+            }
+
+            return response(['code' => 0, 'message' => 'Sukses']);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        } 
+    }
+
+    public function cekUsedSN(Request $request) {
+        try{
+            $meterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 1)->get();
+            return response(['code' => 0, 'message' => 'Sukses', "total" => $meterai->count(), "data" => $meterai]);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function cekUnusedSN(Request $request) {
+        try{
+            $meterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 0)->get();
+            return response(['code' => 0, 'message' => 'Sukses', "total" => $meterai->count(), "data" => $meterai]);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function baseQuota(Request $request) {
+        try{
+            $paketDetail = Quota::join('paket_detail', 'paket_detail.id', '=', 'quota_company.paket_detail_id')->where('detail_name_id', 6)->where('quota_company.company_id', $request->input('company_id'))->select('paket_detail.id')->first();
+            $quotaCurrent = Quota::where('paket_detail_id', $paketDetail->id)->where('company_id', $request->input('company_id'))->first();
+            $penggunaanMeterai = Meterai::where('company_id', $request->input('company_id'))->where('status', 1)->count();
+            $kurangSeharusnya = $quotaCurrent->all - $penggunaanMeterai;
+            if($kurangSeharusnya > $quotaCurrent->quota) {
+                $selisih = $kurangSeharusnya - $quotaCurrent->quota;
+
+                $quotaCurrent->quota = $quotaCurrent->quota + $selisih;
+                $quotaCurrent->save();
+
+                return response(['code' => 0, 'message' => 'Terdapat penambahan data', 'data' => $selisih]);
+            } else if($kurangSeharusnya < $quotaCurrent->quota) {
+                $selisih = $quotaCurrent->quota - $kurangSeharusnya;
+                $quotaCurrent->quota = $quotaCurrent->quota - $selisih;
+                $quotaCurrent->save();
+
+                return response(['code' => 0, 'message' => 'Terdapat pengurangan data', 'data' => $selisih]);
+            } else {
+                return response(['code' => 2, 'message' => 'tidak ada selisih']);
+            }
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function cekCompanyId() {
+        $cekCompany = Company::select('id', 'name')->get();
+        return response(['code' => 0, 'data' => $cekCompany]);
     }
 }

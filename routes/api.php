@@ -45,4 +45,12 @@ Route::get('/cekGagalStamp', '\App\Http\Controllers\Api\QuotaController@cekGagal
 Route::get('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateStamp');
 Route::post('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateDok');
 
+//pengembalian meterai & quota
+Route::post('/invalidSerialNumber', '\App\Http\Controllers\Api\QuotaController@invalidSerialNumber');
+Route::post('/cekUsedSN', '\App\Http\Controllers\Api\QuotaController@cekUsedSN');
+Route::post('/cekUnusedSN', '\App\Http\Controllers\Api\QuotaController@cekUnusedSN');
+Route::post('/baseQuota', '\App\Http\Controllers\Api\QuotaController@baseQuota');
+Route::get('/cekCompanyId', '\App\Http\Controllers\Api\QuotaController@cekCompanyId');
+
+
 

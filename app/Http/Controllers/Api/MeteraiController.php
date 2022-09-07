@@ -450,8 +450,7 @@ class MeteraiController extends Controller
         try{
             $image_base64 = base64_decode($request->input('base64'));
             $fileName = $request->input('sn').'.png';
-            Storage::disk('minio')->put('23/dok/24/meterai/'.$fileName, $image_base64);
-    
+            Storage::disk('minio')->put('23/dok/24/meterai/'.$fileName, $image_base64);    
 
             $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
             if(!$insertMeterai){
@@ -470,11 +469,6 @@ class MeteraiController extends Controller
             return response(['code' => 0, 'message' => 'Sukses']);
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
-        }
-        
-    }
-
-    public function updateDok(Request $request){
-        
+        }        
     }
 }
