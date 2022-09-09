@@ -161,7 +161,6 @@ class MeteraiController extends Controller
                     $n = "%%EOF";
 
                     if ($endfile === $n) {
-
                         $sign = new Sign();
                         $sign->name = $fileName;
                         $sign->realname = addslashes($request->input('content.filename'));
@@ -173,7 +172,12 @@ class MeteraiController extends Controller
 
                         $i = 0;
                         $docType = DB::table('jenis_dokumen')->find($request->input('content.docType'));
-
+                        if($docType){
+                            $reason = $docType->nama."|".$request->input('content.docpass');
+                        } else {
+                            $reason = "Dokumen Lain-lain"."|".$request->input('content.docpass');
+                        }
+                        
                         $base64 = new Base64DokModel;
                         $base64->dokumen_id = $sign->id;
                         $base64->base64Doc = $request->input('content.base64Doc');
@@ -194,6 +198,7 @@ class MeteraiController extends Controller
                             $signer->upper_right_y = $data['upperRightY'];
                             $signer->page = $data['page'];
                             $signer->location = $data['location'];
+                            $signer->reason = $reason;
                             $signer->save();
 
                             $i++;
