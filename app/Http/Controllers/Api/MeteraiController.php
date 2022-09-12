@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\CekCredential;
 use App\Services\Utils;
+use App\Services\UtilsService;
 use App\Services\MeteraiService;
 use App\Services\CompanyService;
-//use App\Services\DimensyService;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\MapCompany;
@@ -21,15 +21,17 @@ use App\Models\Base64DokModel;
 use App\Models\PricingModel;
 use App\Models\JenisDokumen;
 use Illuminate\Support\Facades\Storage;
+use mikehaertl\pdftk\Pdf;
 
 class MeteraiController extends Controller
 {
     //
-    public function __construct(CekCredential $cekCredential, Utils $utils, MeteraiService $meterai, CompanyService $companyService){
+    public function __construct(CekCredential $cekCredential, Utils $utils, MeteraiService $meterai, CompanyService $companyService, UtilsService $utilsService){
         $this->cekCredential = $cekCredential;
         $this->utils = $utils;
         $this->meterai = $meterai;
         $this->companyService = $companyService;
+        $this->utilsService = $utilsService;
     }
 
     public function jenisDok(Request $request) {
@@ -79,6 +81,7 @@ class MeteraiController extends Controller
     public function signingMeterai(Request $request) {
         DB::beginTransaction();
         try{
+            
             if($this->utils->block()){
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
@@ -161,50 +164,63 @@ class MeteraiController extends Controller
                     $n = "%%EOF";
 
                     if ($endfile === $n) {
-                        $sign = new Sign();
-                        $sign->name = $fileName;
-                        $sign->realname = addslashes($request->input('content.filename'));
-                        $sign->users_id = $user->id;
-                        $sign->step = 1;
-                        $sign->tipe = 5;
-                        $sign->status_id = '1';
-                        $sign->save();
 
-                        $i = 0;
-                        $docType = DB::table('jenis_dokumen')->find($request->input('content.docType'));
-                        if($docType){
-                            $reason = $docType->nama."|".$request->input('content.docpass');
+                        $paramsCek = [
+                            "pdf"=> Storage::disk('minio')->url($user->company_id .'/dok/' . $user->id . '/' . $fileName),
+                            "password"=> $request->input('content.docpass')       
+                        ];
+    
+                        $cekPassword = $this->utilsService->callAPI('cek', $paramsCek);
+                        if($cekPassword['code'] == 1){
+
+                            $sign = new Sign();
+                            $sign->name = $fileName;
+                            $sign->realname = addslashes($request->input('content.filename'));
+                            $sign->users_id = $user->id;
+                            $sign->step = 1;
+                            $sign->tipe = 5;
+                            $sign->status_id = '1';
+                            $sign->save();
+
+                            $i = 0;
+                            $docType = DB::table('jenis_dokumen')->find($request->input('content.docType'));
+                            if($docType){
+                                $reason = $docType->nama."|".$request->input('content.docpass');
+                            } else {
+                                $reason = "Dokumen Lain-lain"."|".$request->input('content.docpass');
+                            }
+                            
+                            $base64 = new Base64DokModel;
+                            $base64->dokumen_id = $sign->id;
+                            $base64->base64Doc = $request->input('content.base64Doc');
+                            $base64->status = 1;
+                            $base64->save();
+
+                            foreach($request->input('content.signer') as $data){
+
+                                $sign = Sign::find($sign->id);
+
+                                $signer = new ListSigner();
+                                $signer->users_id = $user->id;
+                                $signer->dokumen_id = $sign->id;
+                                $signer->step = 1;
+                                $signer->lower_left_x = $data['lowerLeftX'];
+                                $signer->lower_left_y = $data['lowerLeftY'];
+                                $signer->upper_right_x = $data['upperRightX'];
+                                $signer->upper_right_y = $data['upperRightY'];
+                                $signer->page = $data['page'];
+                                $signer->location = $data['location'];
+                                $signer->reason = $reason;
+                                $signer->save();
+
+                                $i++;
+                            }      
+                            DB::commit();
+                            return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
                         } else {
-                            $reason = "Dokumen Lain-lain"."|".$request->input('content.docpass');
+                            DB::rollBack();
+                            return response(['code' => 98, 'message' =>$cekPassword['message']]);
                         }
-                        
-                        $base64 = new Base64DokModel;
-                        $base64->dokumen_id = $sign->id;
-                        $base64->base64Doc = $request->input('content.base64Doc');
-                        $base64->status = 1;
-                        $base64->save();
-
-                        foreach($request->input('content.signer') as $data){
-
-                            $sign = Sign::find($sign->id);
-
-                            $signer = new ListSigner();
-                            $signer->users_id = $user->id;
-                            $signer->dokumen_id = $sign->id;
-                            $signer->step = 1;
-                            $signer->lower_left_x = $data['lowerLeftX'];
-                            $signer->lower_left_y = $data['lowerLeftY'];
-                            $signer->upper_right_x = $data['upperRightX'];
-                            $signer->upper_right_y = $data['upperRightY'];
-                            $signer->page = $data['page'];
-                            $signer->location = $data['location'];
-                            $signer->reason = $reason;
-                            $signer->save();
-
-                            $i++;
-                        }      
-                        DB::commit();
-                        return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
                     } else {
                         DB::rollBack();
                         return response(['code' => 98, 'message' =>'Please use pdf file']);
