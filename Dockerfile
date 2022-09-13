@@ -41,6 +41,9 @@ RUN chmod -R ug+w /var/www/storage
 
 WORKDIR /var/www
 RUN composer update
-# RUN php artisan serve --port 8080
+EXPOSE 8000
+
+#CMD [ "node", "index.js" ]
+CMD ["php", "artisan", "serve", "--port", "8000"]
 
 USER $user
