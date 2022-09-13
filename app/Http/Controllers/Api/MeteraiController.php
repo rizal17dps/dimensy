@@ -167,7 +167,7 @@ class MeteraiController extends Controller
                     if ($endfile === $n) {
 
                         $paramsCek = [
-                            "pdf"=> Storage::disk('minio')->url($user->company_id .'/dok/' . $user->id . '/' . $fileName),
+                            "pdf"=> '/sharefolder/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
                             "password"=> $request->input('content.docpass')       
                         ];
     
