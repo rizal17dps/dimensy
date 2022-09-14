@@ -38,10 +38,11 @@ RUN chmod -R ug+w /var/www/storage
 
 WORKDIR /var/www
 RUN composer update
-EXPOSE 5000
+EXPOSE 7000
 
 #CMD [ "node", "index.js" ]
-CMD ["php", "artisan", "serve", "--port", "5000"]
+CMD ["php", "artisan", "serve", "--host", "0.0.0.0", "--port=7000"]
+
 
 
 USER $user
