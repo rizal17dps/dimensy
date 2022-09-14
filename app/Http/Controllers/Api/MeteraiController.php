@@ -172,7 +172,7 @@ class MeteraiController extends Controller
                         ];
     
                         $cekPassword = $this->utilsService->callAPI('cek', $paramsCek);
-                        if(!isset($cekPassword['code'])) {
+                        if(!isset($cekPassword['resultCode'])) {
                             if($cekPassword['code'] == 1){
 
                                 $sign = new Sign();
@@ -225,7 +225,7 @@ class MeteraiController extends Controller
                             }
                         } else {
                             DB::rollBack();
-                            return response(['code' => 98, 'message' =>$cekPassword]);
+                            return response(['code' => 98, 'message' =>$cekPassword['resultDesc']]);
                         }
                         
                     } else {
