@@ -1,8 +1,5 @@
 FROM php:8.1-fpm
 
-ARG user
-ARG uid
-
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -30,13 +27,13 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
+RUN useradd -G www-data,root -u 1000 -d /home/dimensy dimensy
 
-RUN mkdir -p /home/$user/.composer && \
-    chown -R $user:$user /home/$user
+RUN mkdir -p /home/dimensy/.composer && \
+    chown -R dimensy:dimensy /home/dimensy
 
-COPY --chown=$user:www-data . /var/www
-RUN chown -R $user:www-data /var/www/storage
+COPY --chown=dimensy:www-data . /var/www
+RUN chown -R dimensy:www-data /var/www/storage
 RUN chmod -R ug+w /var/www/storage
 
 WORKDIR /var/www
