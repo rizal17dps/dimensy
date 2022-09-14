@@ -42,6 +42,6 @@ EXPOSE 8000
 
 #CMD [ "node", "index.js" ]
 #CMD ["php", "artisan", "serve", "--port", "8000"]
-CMD ["php", "artisan", "serve", "--port=8000"]
+RUN php artisan serve --port 8000
 
 USER $user
