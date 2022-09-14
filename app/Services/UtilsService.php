@@ -15,7 +15,7 @@ class UtilsService
 
     public function __construct(Client $client)
     {
-        $this->url = 'http://127.0.0.1:3000/'; //'https://apgdev.peruri.co.id:9044/gateway/';
+        $this->url = env('DIMENSY_UTILS'); //'https://apgdev.peruri.co.id:9044/gateway/';
         $this->http = $client;
     }
 
