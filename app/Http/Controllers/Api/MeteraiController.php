@@ -172,6 +172,7 @@ class MeteraiController extends Controller
                         ];
     
                         $cekPassword = $this->utilsService->callAPI('cek', $paramsCek);
+                        dd($cekPassword);
                         if($cekPassword['code'] == 1){
 
                             $sign = new Sign();
