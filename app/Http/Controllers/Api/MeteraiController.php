@@ -218,14 +218,14 @@ class MeteraiController extends Controller
                                     $i++;
                                 }      
                                 DB::commit();
-                                return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success', 'url' => config('app.DIMENSY_UTILS')]);
+                                return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
                             } else {
                                 DB::rollBack();
-                                return response(['code' => 98, 'message' =>$cekPassword['message'], 'url' => $cekPassword['urls'], 'urls' => config('app.DIMENSY_UTILS')]);
+                                return response(['code' => 98, 'message' =>$cekPassword['message']]);
                             }
                         } else {
                             DB::rollBack();
-                            return response(['code' => 98, 'message' =>$cekPassword['resultDesc'], 'url' => config('app.DIMENSY_UTILS') ]);
+                            return response(['code' => 98, 'message' =>$cekPassword['resultDesc']]);
                         }
                         
                     } else {
