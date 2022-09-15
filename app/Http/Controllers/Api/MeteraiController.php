@@ -225,7 +225,7 @@ class MeteraiController extends Controller
                             }
                         } else {
                             DB::rollBack();
-                            return response(['code' => 98, 'message' =>$cekPassword['resultDesc'], 'url' => env('DB_DATABASE') ]);
+                            return response(['code' => 98, 'message' =>$cekPassword['resultDesc'], 'url' => getenv('DB_DATABASE') ]);
                         }
                         
                     } else {
