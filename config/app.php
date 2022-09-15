@@ -135,6 +135,7 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'DIMENSY_UTILS' => env('DIMENSY_UTILS'),
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
