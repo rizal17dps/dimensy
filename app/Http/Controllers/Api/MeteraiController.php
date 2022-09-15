@@ -167,7 +167,7 @@ class MeteraiController extends Controller
                     if ($endfile === $n) {
 
                         $paramsCek = [
-                            "pdf"=> 'sharefolder/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
+                            "pdf"=> $request->input('content.base64Doc'),
                             "password"=> $request->input('content.docpass')       
                         ];
     
