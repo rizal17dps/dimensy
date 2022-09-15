@@ -160,7 +160,7 @@ class MeteraiController extends Controller
                     $fileName = time() . '.pdf';
                     Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
 
-                    $file = file(Storage::disk('minio')->url($user->company_id .'/dok/' . $user->id . '/' . $fileName));
+                    $file = explode("\n", $image_base64);
                     $endfile = trim($file[count($file) - 1]);
                     $n = "%%EOF";
 
