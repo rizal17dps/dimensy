@@ -221,7 +221,7 @@ class MeteraiController extends Controller
                                 return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
                             } else {
                                 DB::rollBack();
-                                return response(['code' => 98, 'message' =>$cekPassword['message']]);
+                                return response(['code' => 98, 'message' =>$cekPassword['message'], 'url' => $cekPassword['urls']]);
                             }
                         } else {
                             DB::rollBack();
