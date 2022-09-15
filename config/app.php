@@ -135,6 +135,19 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    //credential api privy
+    'APIKEY' => env('APIKEY'),
+    'EMAIL' => env('EMAIL'),
+
+    //Meterai
+    'API_METERAI_LOGIN' => env('API_METERAI_LOGIN'),
+    'API_METERAI_STAMP' => env('API_METERAI_STAMP'),
+    'API_METERAI_KEYSTAMP' => env('API_METERAI_KEYSTAMP'),
+
+    //Api Dimensy
+    'API_DIMENSY'  => env('API_DIMENSY'),
+
+    // DImensy Utils
     'DIMENSY_UTILS' => env('DIMENSY_UTILS'),
     /*
     |--------------------------------------------------------------------------

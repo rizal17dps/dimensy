@@ -15,7 +15,7 @@ class DimensyService
 
     public function __construct(Client $client)
     {
-        $this->url = env('API_DIMENSY'); //'https://apgdev.peruri.co.id:9044/gateway/';
+        $this->url = config('app.API_DIMENSY');
         $this->http = $client;
     }
 
@@ -26,8 +26,8 @@ class DimensyService
             $full_path .= $uri;
             $head = [
                 'content-type' => 'application/json',
-                'apiKey' => '4226a0ea0b42c99abb0a4191dfc2a9f314972d40d467222cb162bc0bdba4b232',
-                'email' => 'privy@yopmail.com',
+                'apiKey' => config('app.APIKEY'),
+                'email' => config('app.EMAIL'),
             ];
 
             $request = $this->http->request('POST', $full_path, [

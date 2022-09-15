@@ -63,36 +63,11 @@ class UtilsService
         try{            
             $x = $this->getResponse(
                 $uri,$params
-            );
-            
-            //$this->logError(\Request::getClientIp(), $uri, json_encode($params), json_encode($x) , 'HASIL');
-            
+            );            
             return $x;
         } catch (\Exception $e) {
-            //$this->logError(\Request::getClientIp(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
             return $e->getMessage();
         }
     }
-
-    // public function logError($ip, $url, $param, $desc, $stat){
-    //     try{
-    //         if(isset(auth()->user()->id)){
-    //             $me = auth()->user()->id;
-    //         } else {
-    //             $me = "guest";
-    //         }
-    //         $log = new LogModel();
-    //         $log->ip = $ip;
-    //         $log->users_id = $me;
-    //         $log->url = $url;
-    //         $log->param = $param;
-    //         $log->desc = $desc;
-    //         $log->status = $stat;
-    //         $log->save();
-    //     } catch(\Exception $e) {
-    //         Log::error('Log Error '.$e->getMessage());
-    //         return true;
-    //     }
-    // }
 
 }

@@ -8,16 +8,18 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\AuthModel;
 use App\Models\LogModel;
+use App\Services\DimensyService;
 
 class MeteraiService
 {
 
-    public function __construct(Client $client)
+    public function __construct(Client $client, DimensyService $dimensyService)
     {
-        $this->urlInfo = env('API_METERAI_LOGIN'); //'https://backendservicedev.scm.perurica.co.id/';
-        $this->urlStamp = env('API_METERAI_STAMP'); //'https://stampv2dev.scm.perurica.co.id/';
-        $this->urlKeyStamp = env('API_METERAI_KEYSTAMP'); //'http://192.168.200.205:8888/';
+        $this->urlInfo = config('app.API_METERAI_LOGIN');
+        $this->urlStamp = config('app.API_METERAI_STAMP');
+        $this->urlKeyStamp = config('app.API_METERAI_KEYSTAMP');
         $this->http = $client;
+        $this->dimensyService = $dimensyService;
     }
 
     private function getResponse(string $uri = null, array $params = [], $type = "info", $method = "POST", $token = null)
@@ -67,38 +69,23 @@ class MeteraiService
             //die;
         } catch (RequestException $e) {
             // Connection exceptions are not caught by RequestException
-            //Log::error($e->getResponse());
             $x['errorCode'] = "500";
             $x['message'] = $e->getMessage();
             return $x;
-            //dd($e->getResponse());
         }
-    }
-
-    public function getJwt()
-    {
-        return $this->getResponse(
-                'api/users/login',
-                [
-                    "user" => env('API_METERAI_UNAME'),
-                    "password" => env('API_METERAI_PASSWORD'),
-                ]
-            );
-      
     }
 
     public function callAPI(string $uri = null, array $params = [], $type, $method)
     {
         try{
-            $cek = $this->getJwt();
-            if ($cek['statusCode'] == "00") {
-                //dd(json_encode($params));
+            
+            $cek = $this->dimensyService->callAPI('api/getJwt');
+            if ($cek['code'] == "0") {
                 $x = $this->getResponse(
-                    $uri,$params,$type,$method,$cek['token']
+                    $uri,$params,$type,$method,$cek['data']
                 );
-                $x['token'] = $cek['token'];
-            }  else {
-                
+                $x['data'] = $cek['data'];
+            }  else {                
                 $x = $cek;
             }
             

@@ -15,7 +15,7 @@ class SignService
 
     public function __construct(Client $client)
     {
-        $this->url = env('API_PERURI'); //'https://apgdev.peruri.co.id:9044/gateway/';
+        $this->url = env('API_PERURI'); 
         $this->http = $client;
     }
 
@@ -56,14 +56,11 @@ class SignService
             $x['resultCode'] = "408";
             $x['resultDesc'] = $e->getMessage();
             return $x;
-            //die;
         } catch (RequestException $e) {
             // Connection exceptions are not caught by RequestException
-            //Log::error($e->getResponse());
             $x['resultCode'] = "500";
             $x['resultDesc'] = $e->getResponse();
             return $x;
-            //dd($e->getResponse());
         }
     }
 
@@ -107,34 +104,10 @@ class SignService
                 }
             }
             
-            //$this->logError(\Request::getClientIp(), $uri, json_encode($params), json_encode($x) , 'HASIL');
-            
             return $x;
         } catch (\Exception $e) {
-            //$this->logError(\Request::getClientIp(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
             return $e->getMessage();
         }
     }
-
-    // public function logError($ip, $url, $param, $desc, $stat){
-    //     try{
-    //         if(isset(auth()->user()->id)){
-    //             $me = auth()->user()->id;
-    //         } else {
-    //             $me = "guest";
-    //         }
-    //         $log = new LogModel();
-    //         $log->ip = $ip;
-    //         $log->users_id = $me;
-    //         $log->url = $url;
-    //         $log->param = $param;
-    //         $log->desc = $desc;
-    //         $log->status = $stat;
-    //         $log->save();
-    //     } catch(\Exception $e) {
-    //         Log::error('Log Error '.$e->getMessage());
-    //         return true;
-    //     }
-    // }
 
 }
