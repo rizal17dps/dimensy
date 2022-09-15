@@ -161,10 +161,10 @@ class MeteraiController extends Controller
                     Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
 
                     $file = explode("\n", $image_base64);
-                    $endfile = trim($file[count($file) - 1]);
+                    $endfile = trim($file[count($file) - 2]);
                     $n = "%%EOF";
 
-                    if ($endfile === $n) {
+                    if (in_array("%%EOF", $file)) {
 
                         $paramsCek = [
                             "pdf"=> 'sharefolder/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
@@ -218,10 +218,10 @@ class MeteraiController extends Controller
                                     $i++;
                                 }      
                                 DB::commit();
-                                return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
+                                return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success', 'url' => env('DIMENSY_UTILS')]);
                             } else {
                                 DB::rollBack();
-                                return response(['code' => 98, 'message' =>$cekPassword['message'], 'url' => $cekPassword['urls']]);
+                                return response(['code' => 98, 'message' =>$cekPassword['message'], 'url' => $cekPassword['urls'], 'urls' => env('DIMENSY_UTILS')]);
                             }
                         } else {
                             DB::rollBack();
