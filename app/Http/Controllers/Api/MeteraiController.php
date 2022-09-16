@@ -132,8 +132,9 @@ class MeteraiController extends Controller
                 if($user){
                     $request->validate([
                         'content' => 'required|array',
-                        'content.filename' => 'required|max:255|regex:/^[a-zA-Z0-9_.-]+$/u',
-                        'content.docpass' => 'nullable|regex:/^[a-zA-Z0-9_.!@#$%&*()^\/?<>,{}+= -]+$/u',
+                        'content.filename' => 'required|max:255|regex:/^[a-zA-Z0-9_.-\/]+$/u',
+                        'content.noDoc' => 'nullable|max:255|regex:/^[a-zA-Z0-9_.()\/ -]+$/u',
+                        'content.docpass' => 'nullable|max:255|regex:/^[a-zA-Z0-9_.!@#$%&*()^\/?<>,{}+= -]+$/u',
                         'content.base64Doc' => 'required',
                         'content.docType' => 'required|max:255',
                         'content.signer' => 'array|min:1',
@@ -449,10 +450,11 @@ class MeteraiController extends Controller
                     $params=[];
                     $list=[];
                     $serialNumber = $this->meterai->callAPI('api/chanel/stamp/ext?filter='.$id, $params, 'info', 'GET');
+                    $cekMeterai = Meterai::where('serial_number', $id)->first();
                     if(isset($serialNumber['statusCode'])){
                         if($serialNumber['statusCode'] == 00){
                             foreach($serialNumber['result']['data'] as $data){                
-                                array_push($list, array('status' => $data['status'], 'fileName' => $data['file'], 'tglupdate' => $data['tglupdate']));                   
+                                array_push($list, array('status' => $data['status'], 'fileName' => $cekMeterai->doks->realname, 'tglupdate' => $data['tglupdate']));                   
                             }
                             DB::commit();
                             return response(['code' => 0, 'data' => $list ,'message' => 'Success']);

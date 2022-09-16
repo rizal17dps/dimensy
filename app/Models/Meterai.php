@@ -13,6 +13,6 @@ class Meterai extends Model
 
     public function doks()
     {
-        return $this->hasMany('App\Models\Sign', 'id');
+        return $this->belongsTo('App\Models\Sign', 'dokumen_id');
     }
 }
