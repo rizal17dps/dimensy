@@ -35,7 +35,7 @@ RUN mkdir -p /home/dimensy/.composer && \
 COPY --chown=dimensy:www-data . /var/www
 RUN chown -R dimensy:www-data /var/www/storage
 RUN chmod -R ug+w /var/www/storage
-RUN chmod ug+w /var/www/run.sh
+RUN chmod +x /var/www/run.sh
 
 WORKDIR /var/www
 RUN composer update
