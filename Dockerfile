@@ -41,7 +41,10 @@ RUN composer update
 EXPOSE 7000
 
 #CMD [ "node", "index.js" ]
-CMD ["php", "artisan", "serve", "--host", "0.0.0.0", "--port=7000"]
-RUN php artisan optimize
+# CMD ["php", "artisan", "serve", "--host", "0.0.0.0", "--port=7000"]
+# RUN php artisan optimize
+
+ENTRYPOINT ["/var/www/run.sh"]
+
 
 USER $user
