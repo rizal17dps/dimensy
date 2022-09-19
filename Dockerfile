@@ -40,8 +40,8 @@ WORKDIR /var/www
 RUN composer update
 EXPOSE 7000
 
+#CMD [ "node", "index.js" ]
 CMD ["php", "artisan", "serve", "--host", "0.0.0.0", "--port=7000"]
-
-
+RUN php artisan optimize
 
 USER $user
