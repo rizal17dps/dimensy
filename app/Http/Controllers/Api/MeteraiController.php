@@ -143,7 +143,7 @@ class MeteraiController extends Controller
                         'content.signer.*.upperRightX' => 'required|numeric|max:1000',
                         'content.signer.*.upperRightY' => 'required|numeric|max:1000',
                         'content.signer.*.page' => 'required|numeric|min:0|not_in:0',
-                        'content.signer.*.location' => 'string|max:255|regex:/^[a-zA-Z0-9 ]+$/u',
+                        'content.signer.*.location' => 'string|max:255|regex:/^[a-zA-Z ]+$/u',
                     ]);
                     
                     $image_base64 = base64_decode($request->input('content.base64Doc'), true);
