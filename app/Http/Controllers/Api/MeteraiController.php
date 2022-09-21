@@ -479,24 +479,30 @@ class MeteraiController extends Controller
     public function insertQuota(Request $request){
         try{
             $image_base64 = base64_decode($request->input('base64'));
-            $fileName = $request->input('sn').'.png';
-            Storage::disk('minio')->put('23/dok/24/meterai/'.$fileName, $image_base64);    
-
-            $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
-            if(!$insertMeterai){
-                $insertMeterai = new Meterai();
-                $insertMeterai->serial_number = $request->input('sn');
-                $insertMeterai->path = '23/dok/24/meterai/'.$fileName;
-                $insertMeterai->status = 0;
-                $insertMeterai->company_id = 23;
-                $insertMeterai->save();
+            $cekUser = User::where('email', $request->input('email'))->first();
+            if($cekUser) {
+                $fileName = $request->input('sn').'.png';
+                Storage::disk('minio')->put($cekUser->company_id.'/dok/'.$cekUser->id.'/meterai/'.$fileName, $image_base64);    
+    
+                $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
+                if(!$insertMeterai){
+                    $insertMeterai = new Meterai();
+                    $insertMeterai->serial_number = $request->input('sn');
+                    $insertMeterai->path = $cekUser->company_id.'/dok/'.$cekUser->id.'/meterai/'.$fileName;
+                    $insertMeterai->status = 0;
+                    $insertMeterai->company_id = $cekUser->company_id;
+                    $insertMeterai->save();
+                }
+    
+                $insertQuota = Quota::where('company_id', $cekUser->company_id)->first();
+                $insertQuota->all = $insertQuota->all + 1;
+                $insertQuota->quota = $insertQuota->quota + 1;
+                $insertQuota->save();
+                return response(['code' => 0, 'message' => 'Sukses']);
+            } else {
+                return response(['code' => 1, 'message' => 'User tidak ditemukan']);
             }
-
-            $insertQuota = Quota::where('company_id', 23)->first();
-            $insertQuota->all = $insertQuota->all + 1;
-            $insertQuota->quota = $insertQuota->quota + 1;
-            $insertQuota->save();
-            return response(['code' => 0, 'message' => 'Sukses']);
+            
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }        
