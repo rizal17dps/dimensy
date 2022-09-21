@@ -364,21 +364,25 @@ class QuotaController extends Controller
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
                 $image_base64 = base64_decode($request->input('base64'));
-                $userId = User::where('company_id', $request->input('company_id'))->first();
-                $fileName = $request->input('sn').'.png';
-                Storage::disk('minio')->put($request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName, $image_base64);    
+                $userId = User::where('email', $request->input('email'))->first();
+                if($userId){
+                    $fileName = $request->input('sn').'.png';
+                    Storage::disk('minio')->put($userId->company_id.'/dok/'.$userId->id.'/meterai/'.$fileName, $image_base64);    
 
-                $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
-                if(!$insertMeterai){
-                    $insertMeterai = new Meterai();
-                    $insertMeterai->serial_number = $request->input('sn');
-                    $insertMeterai->path = $request->input('company_id').'/dok/'.$userId->id.'/meterai/'.$fileName;
-                    $insertMeterai->status = 0;
-                    $insertMeterai->company_id = $request->input('company_id');
-                    $insertMeterai->save();
-                }
+                    $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
+                    if(!$insertMeterai){
+                        $insertMeterai = new Meterai();
+                        $insertMeterai->serial_number = $request->input('sn');
+                        $insertMeterai->path = $userId->company_id.'/dok/'.$userId->id.'/meterai/'.$fileName;
+                        $insertMeterai->status = 0;
+                        $insertMeterai->company_id = $userId->company_id;
+                        $insertMeterai->save();
+                    }
 
-                return response(['code' => 0, 'message' => 'Sukses']);
+                    return response(['code' => 0, 'message' => 'Sukses']);
+                } else {
+                    return response(['code' => 1, 'message' => 'User tidak ditemukan']);
+                }                
             }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
