@@ -454,17 +454,17 @@ class MeteraiController extends Controller
                     if(isset($serialNumber['statusCode'])){
                         if($serialNumber['statusCode'] == 00){
                             foreach($serialNumber['result']['data'] as $data){                
-                                array_push($list, array('status' => $data['status'], 'fileName' => $cekMeterai->doks->realname, 'tglupdate' => $data['tglupdate']));                   
+                                array_push($list, array('status' => $data['status'], 'fileName' => $cekMeterai->doks->realname ?? $data['file'], 'tglupdate' => $data['tglupdate']));                   
                             }
                             DB::commit();
                             return response(['code' => 0, 'data' => $list ,'message' => 'Success']);
                         } else {
                             DB::rollBack();
-                            return response(['code' => 98, 'message' => $serialNumber['message']]);
+                            return response(['code' => 98, 'message' => $serialNumber['result']['err']]);
                         }
                     } else {
                         DB::rollBack();
-                        return response(['code' => 98, 'message' => 'Cannot connect to peruri']);
+                        return response(['code' => 98, 'message' => 'Cannot connect to peruri '. $serialNumber['message']]);
                     }                    
                 } else {
                     DB::rollBack();
