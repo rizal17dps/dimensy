@@ -161,9 +161,7 @@ class MeteraiController extends Controller
                     $fileName = time() . '.pdf';
                     Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
 
-                    $file = explode("\n", $image_base64);
-                    $endfile = trim($file[count($file) - 2]);
-                    $n = "%%EOF";
+                    $file = explode("\n", $image_base64);                    
 
                     if (in_array("%%EOF", $file)) {
 
@@ -376,7 +374,6 @@ class MeteraiController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
 
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
