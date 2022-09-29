@@ -160,11 +160,8 @@ class MeteraiController extends Controller
 
                     $fileName = time() . '.pdf';
                     Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
-
-                    $file = explode("\n", $image_base64);                    
-
-                    if (in_array("%%EOF", $file)) {
-
+                   
+                    if (strpos($image_base64, "%%EOF") !== false) {
                         $paramsCek = [
                             "pdf"=> 'sharefolder/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
                             "password"=> $request->input('content.docpass')       
