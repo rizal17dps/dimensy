@@ -68,7 +68,17 @@ class SendController extends Controller
                     if($dok){
                         $list = [];
                         foreach($dok as $data){
-                            array_push($list, array('dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView));
+                            $resultCode = 99;
+
+                            if($data->stat->id == 1){
+                                $resultCode = 95;
+                            } else if($data->stat->id == 8) {
+                                $resultCode = 0;
+                            } else if($data->stat->id == 9) {
+                                $resultCode = 97;
+                            }
+
+                            array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView));
                         }
 
                         DB::commit();
