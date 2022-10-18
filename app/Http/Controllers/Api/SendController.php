@@ -62,7 +62,6 @@ class SendController extends Controller
                         $dok = Sign::with('meteraiView', 'descView')->where('users_id',$user->id)->where('id', (int)$id)->get();
                     } else {
                         $dok = Sign::with('meteraiView', 'descView')->where('users_id',$user->id)->get();
-
                     }
 
                     if($dok){
