@@ -51,6 +51,7 @@ Route::post('/cekUsedSN', '\App\Http\Controllers\Api\QuotaController@cekUsedSN')
 Route::post('/cekUnusedSN', '\App\Http\Controllers\Api\QuotaController@cekUnusedSN');
 Route::post('/baseQuota', '\App\Http\Controllers\Api\QuotaController@baseQuota');
 Route::post('/cekCompanyId', '\App\Http\Controllers\Api\QuotaController@cekCompanyId');
+Route::post('/updateInvalidSerialNumber', '\App\Http\Controllers\Api\QuotaController@updateInvalidSerialNumber');
 
 
 
