@@ -389,6 +389,54 @@ class QuotaController extends Controller
         } 
     }
 
+    public function updateInvalidSerialNumber(Request $request) {
+        try{
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $userId = User::where('email', $request->input('email'))->first();
+                if($userId){
+
+                    $updateMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
+                    if($updateMeterai){
+                        $updateMeterai->status = 4;
+                        $updateMeterai->desc = "Sudah dikembalikan ke DPS";
+                        $updateMeterai->save();
+                        
+                        DB::commit();
+
+                        return response(['code' => 0, 'message' => 'Sukses']);
+                    } else {
+                        return response(['code' => 2, 'message' => 'Meterai tidak ditemukan']);
+                    }
+                    
+                } else {
+                    return response(['code' => 1, 'message' => 'User tidak ditemukan']);
+                }                
+            }
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        } 
+    }
+
     public function cekUsedSN(Request $request) {
         try{
             $header = $request->header('apiKey');
