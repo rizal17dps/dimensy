@@ -59,13 +59,15 @@ class SendController extends Controller
                 $user = User::where('email', $email)->first();
                 if($user){
                     if($id){
-                        $dok = Sign::with('meteraiView', 'descView')->where('users_id',$user->id)->where('id', (int)$id)->get();
+                        $dok = Sign::with('meteraiView', 'descView', 'approver')->where('users_id',$user->id)->where('id', (int)$id)->get();
                     } else {
-                        $dok = Sign::with('meteraiView', 'descView')->where('users_id',$user->id)->get();
+                        $dok = Sign::with('meteraiView', 'descView', 'approver')->where('users_id',$user->id)->get();
                     }
 
                     if($dok){
                         $list = [];
+                        $dataDesc = [];
+                        $i = 0;
                         foreach($dok as $data){
                             $resultCode = 99;
 
@@ -77,7 +79,22 @@ class SendController extends Controller
                                 $resultCode = 97;
                             }
 
-                            array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView));
+                            foreach($data->approver as $dataApp){
+                                if($dataApp->isSign){
+                                    $dataCode = 0;
+                                    $desc = 'success';
+                                } else {
+                                    $dataCode = 99;
+                                    $desc = 'OnProgress / Error Labelling eMeterai';
+                                }
+
+                                array_push($dataDesc, array('code' => $dataCode, 'page' => $dataApp->page, 'desc' => $desc));
+
+                            }
+
+                            array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView, 'statusMeteraiDokumen' => $dataDesc));
+                            
+                            $i++;
                         }
 
                         DB::commit();
@@ -132,13 +149,17 @@ class SendController extends Controller
                 $dok = Sign::find($request->input('dataId'));
                 
                 if($dok){
-                    if($dok->status_id == 8) {
-                        $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
-                        return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
-                    } else {
-                        //$data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
-                        return response(['code' => 10, 'message' => 'Dokumen masih dalam proses antrian']);
-                    }                    
+                    // if($dok->status_id == 8) {
+                    //     $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
+                    //     return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
+                    // } else {
+                    //     //$data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
+                    //     return response(['code' => 10, 'message' => 'Dokumen masih dalam proses antrian']);
+                    // }
+                    
+                    $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
+                    return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
+
                 } else {
                     return response(['code' => 97, 'message' => 'Document not found']);
                 }                

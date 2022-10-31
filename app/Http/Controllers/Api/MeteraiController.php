@@ -501,4 +501,73 @@ class MeteraiController extends Controller
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }        
     }
+
+    public function retrySign(Request $request){
+        try{
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }            
+
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+                $user = User::where('email', $email)->first();
+                if($user){
+                    $request->validate([
+                        'dataId' => 'required'
+                    ]);
+
+                    $cekStatus = Sign::find($request->dataId);
+                    if($cekStatus){
+                        if($cekStatus->status_id == 9){
+                            $update = Base64DokModel::where('dokumen_id', $request->dataId)->first();
+                            if($update->status == 3){
+                                $update->status = 1;
+                                $update->save();
+
+                                $cekStatus->status_id = 1;
+                                $cekStatus->save();
+                                
+                                DB::commit();
+
+                                return response(['code' => 0, 'message' => 'Document are in queue']);
+                            } else {
+                                DB::rollBack();
+                                return response(['code' => 97, 'message' => 'Document Has Been Stamped']);
+                            }
+                        } else {
+                            DB::rollBack();
+                            return response(['code' => 97, 'message' => 'Document Has Been Stamped']);
+                        }
+                    } else {
+                        DB::rollBack();
+                        return response(['code' => 98, 'message' => 'Document Not Found']);
+                    }
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'Email Not Found']);
+                }
+            }
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
 }

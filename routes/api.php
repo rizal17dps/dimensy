@@ -44,6 +44,7 @@ Route::get('/cekSNgagal', '\App\Http\Controllers\Api\MeteraiController@cekSNgaga
 Route::get('/cekGagalStamp', '\App\Http\Controllers\Api\QuotaController@cekGagalStamp');
 Route::get('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateStamp');
 Route::post('/updateStamp', '\App\Http\Controllers\Api\MeteraiController@updateDok');
+Route::post('/retrySign', '\App\Http\Controllers\Api\MeteraiController@retrySign');
 
 //pengembalian meterai & quota
 Route::post('/invalidSerialNumber', '\App\Http\Controllers\Api\QuotaController@invalidSerialNumber');
