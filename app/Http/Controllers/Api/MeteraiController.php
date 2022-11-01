@@ -535,7 +535,7 @@ class MeteraiController extends Controller
                         'dataId' => 'required'
                     ]);
 
-                    $cekStatus = Sign::find($request->dataId);
+                    $cekStatus = Sign::find((int)$request->dataId);
                     if($cekStatus){
                         if($cekStatus->status_id == 9){
                             $update = Base64DokModel::where('dokumen_id', $request->dataId)->first();
