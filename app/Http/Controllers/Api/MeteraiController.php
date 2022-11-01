@@ -447,11 +447,16 @@ class MeteraiController extends Controller
                     $cekMeterai = Meterai::where('serial_number', $id)->first();
                     if(isset($serialNumber['statusCode'])){
                         if($serialNumber['statusCode'] == 00){
-                            foreach($serialNumber['result']['data'] as $data){                
-                                array_push($list, array('status' => $data['status'], 'fileName' => $cekMeterai->doks->realname ?? $data['file'], 'tglupdate' => $data['tglupdate']));                   
+                            if(is_array($serialNumber['result'])){
+                                foreach($serialNumber['result']['data'] as $data){                
+                                    array_push($list, array('status' => $data['status'], 'fileName' => $cekMeterai->doks->realname ?? $data['file'], 'tglupdate' => $data['tglupdate']));                   
+                                }
+                                DB::commit();
+                                return response(['code' => 0, 'data' => $list ,'message' => 'Success']);
+                            } else {
+                                return response(['code' => 97, 'data' => [] ,'message' => $serialNumber['result']]);
                             }
-                            DB::commit();
-                            return response(['code' => 0, 'data' => $list ,'message' => 'Success']);
+                            
                         } else {
                             DB::rollBack();
                             return response(['code' => 98, 'message' => $serialNumber['result']['err']]);
