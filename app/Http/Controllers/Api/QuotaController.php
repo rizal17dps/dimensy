@@ -307,6 +307,12 @@ class QuotaController extends Controller
 
             $countGagal = Base64DokModel::whereRaw("DATE(created_at) = CURRENT_DATE")->where('status', 3)->select('id')->get();;
             $list["gagalMeterai"] = $countGagal->count();
+
+            $countGagalAll = Meterai::whereIn('status', ['3', '4'])->select('id')->get();;
+            $list["countGagalAll"] = $countGagalAll->count();
+
+            $countBerhasilAll = Meterai::where('status', 1)->select('id')->get();;
+            $list["countBerhasilAll"] = $countBerhasilAll->count();
                 
             $list["version"] = config('app.version');
 
