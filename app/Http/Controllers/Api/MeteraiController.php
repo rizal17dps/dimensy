@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 use App\Services\CekCredential;
 use App\Services\Utils;
 use App\Services\UtilsService;
+use App\Services\DimensyService;
 use App\Services\MeteraiService;
 use App\Services\CompanyService;
-use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\MapCompany;
 use App\Models\Meterai;
@@ -20,8 +20,11 @@ use App\Models\Quota;
 use App\Models\Base64DokModel;
 use App\Models\PricingModel;
 use App\Models\JenisDokumen;
-use Illuminate\Support\Facades\Storage;
 use mikehaertl\pdftk\Pdf;
+use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class MeteraiController extends Controller
 {
@@ -572,6 +575,263 @@ class MeteraiController extends Controller
                 }
             }
         } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function meteraiSign(Request $request, DimensyService $dimensyService){
+        DB::beginTransaction();
+        try{
+            
+            if($this->utils->block()){
+                return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
+            }
+            
+            $header = $request->header('apiKey');
+            $email = $request->header('email');
+
+            if(!$header){
+                DB::commit();
+                return response(['code' => 98, 'message' => 'Api Key Required']);
+            }
+
+            if(!$email){
+                return response(['code' => 98, 'message' => 'Email Required']);
+            }
+            
+            $cekToken = $this->cekCredential->cekToken($header);
+            $cekEmail = $this->cekCredential->cekEmail($header, $email);
+            if(!$cekToken){
+                $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
+                DB::commit();
+                return response(['code' => 98, 'message' => 'apiKey Mismatch']);
+            }  else if(!$cekEmail){
+                DB::rollBack();
+                return response(['code' => 98, 'message' => 'Email Not Found']);
+            } else {
+
+                if($this->utils->cekExpired($cekEmail->company->mapsCompany->expired_date)){
+                    return response(['code' => 95, 'message' => 'Your package has run out, please update your package']);
+                }
+
+                $map = MapCompany::with('paket', 'paket.maps')->where('company_id', $cekEmail->company_id)->first();
+                $quotaMeterai = "";
+
+                foreach($map->paket->maps as $map){
+                    if($map->detail->type == 'materai'){
+                        $quotaMeterai = $map->detail->id;
+                    }
+                }
+
+                //check quota local
+                if($this->companyService->cek($quotaMeterai, $cekEmail->id)){
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
+                }
+
+                $user = User::where('email', $email)->first();
+                if($user){
+                    $request->validate([
+                        'content' => 'required|array',
+                        'content.filename' => 'required|max:255|regex:/^[a-zA-Z0-9 _.-]+$/u',
+                        'content.noDoc' => 'nullable|max:255|regex:/^[a-zA-Z0-9_.()\/ -]+$/u',
+                        'content.docpass' => 'nullable|max:255|regex:/^[a-zA-Z0-9_.!@#$%&*()^\/?<>,{}+= -]+$/u',
+                        'content.base64Doc' => 'required',
+                        'content.docType' => 'required|max:255',
+                        'content.lowerLeftX' => 'required|numeric|max:1000',
+                        'content.lowerLeftY' => 'required|numeric|max:1000',
+                        'content.upperRightX' => 'required|numeric|max:1000',
+                        'content.upperRightY' => 'required|numeric|max:1000',
+                        'content.page' => 'required|numeric|min:0|not_in:0',
+                        'content.location' => 'string|max:255|regex:/^[a-zA-Z ]+$/u',
+                    ]);
+                    
+                    $image_base64 = base64_decode($request->input('content.base64Doc'), true);
+                    if ($image_base64 === false) {
+                        DB::rollBack();
+                        return response(['code' => 98, 'message' =>'Document corrupt']);
+                    } else {
+                        $cekLagi = base64_encode($image_base64);
+                        if ($request->input('content.base64Doc') != $cekLagi) {
+                            DB::rollBack();
+                            return response(['code' => 98, 'message' =>'Document corrupt']);
+                        }
+                    }
+
+                    $fileName = time() . '.pdf';
+                    Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
+                   
+                    if (strpos($image_base64, "%%EOF") !== false) {
+                        $paramsCek = [
+                            "pdf"=> 'sharefolder/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
+                            "password"=> $request->input('content.docpass')       
+                        ];
+
+                        $cekPassword = $this->utilsService->callAPI('cek', $paramsCek);
+                        if(!isset($cekPassword['resultCode'])) {
+                            if($cekPassword['code'] == 1){
+
+                                $sign = new Sign();
+                                $sign->name = $fileName;
+                                $sign->realname = addslashes($request->input('content.filename'));
+                                $sign->users_id = $user->id;
+                                $sign->step = 1;
+                                $sign->tipe = 5;
+                                $sign->status_id = '1';
+                                $sign->save();
+    
+                                $i = 0;
+                                $docType = DB::table('jenis_dokumen')->find($request->input('content.docType'));
+                                if($docType){
+                                    $reason = $docType->nama."|".$request->input('content.docpass');
+                                } else {
+                                    $reason = "Dokumen Lain-lain"."|".$request->input('content.docpass');
+                                }
+                                
+                                $base64 = new Base64DokModel;
+                                $base64->dokumen_id = $sign->id;
+                                $base64->base64Doc = $request->input('content.base64Doc');
+                                $base64->status = 1;
+                                $base64->save();
+    
+                                $signer = new ListSigner();
+                                $signer->users_id = $user->id;
+                                $signer->dokumen_id = $sign->id;
+                                $signer->step = 1;
+                                $signer->lower_left_x = $request->input('content.lowerLeftX');
+                                $signer->lower_left_y = $request->input('content.lowerLeftY');
+                                $signer->upper_right_x = $request->input('content.upperRightX');
+                                $signer->upper_right_y = $request->input('content.upperRightY');
+                                $signer->page = $request->input('content.page');
+                                $signer->location = $request->input('content.location');
+                                $signer->reason = $reason;
+                                $signer->save();
+    
+                                
+
+                                $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;                        
+                                $sukses = false;
+                                $token = '';
+                                for($i = 1; $i<=3; $i++){
+                                    $cek = $dimensyService->callAPI('api/getJwt');
+                                    if($cek['code'] == 0){
+                                        $token = $cek['data'];
+                                        $sukses = true;
+                                        break;
+                                    }
+                                }
+
+                                if($sukses) {
+                                    config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
+
+                                    for($i = 1; $i<=5; $i++){
+                                        if($sign->id % 2 == 0){
+                                            //genap
+                                            $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->whereRaw('meterai.id %2= 0')->first();
+                                        } else {
+                                            //ganjil
+                                            $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->whereRaw('meterai.id %2= 1')->first();
+                                        }
+
+                                        $params = [
+                                            "certificatelevel"=> "NOT_CERTIFIED",
+                                            "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
+                                            "docpass"=> $request->input('content.docpass'),
+                                            "jwToken"=> $token,
+                                            "location"=> $request->input('content.location'),
+                                            "profileName"=> "emeteraicertificateSigner",
+                                            "reason"=> $docType->nama ?? 'Dokumen Lain-lain',
+                                            "refToken"=> $cekUnusedMeterai->serial_number,
+                                            "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
+                                            "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
+                                            "visLLX"=> $signer->lower_left_x,
+                                            "visLLY"=> $signer->lower_left_y,
+                                            "visURX"=> $signer->upper_right_x,
+                                            "visURY"=> $signer->upper_right_y,
+                                            "visSignaturePage"=> $signer->page
+                                        ];
+    
+                                        $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                        if(!isset($keyStamp['errorCode'])){
+                                            $base64->status = 3;
+                                            $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                            $sign->status_id = 9;
+                                            $sign->save();
+                                            $base64->save();
+                                            DB::commit();
+                                        } else if($keyStamp['errorCode'] == 0) {
+                                            $cekUnusedMeterai->status = 1;
+                                            $cekUnusedMeterai->dokumen_id = $sign->id;
+                                            $cekUnusedMeterai->save();
+    
+                                            if($cekUnusedMeterai->status == 1){
+                                                $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $sign->user->company_id)->first();
+                                            
+                                                if(!$this->companyService->historyPemakaian($quotaMeterai, $sign->users_id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                                                    DB::rollBack();
+                                                    throw new \Exception('Error Create History Pemakaian', 500);
+                                                }
+                
+                                                if(!$this->companyService->quotaKurang($quotaMeterai, $sign->user->company_id)){
+                                                    DB::rollBack();
+                                                    throw new \Exception('Error Create History Pemakaian', 500);
+                                                }
+                                            }
+    
+                                            $base64->status = 2;
+                                            $base64->desc = '';
+                                            $base64->save();
+    
+                                            $sign->status_id = 8;
+                                            $sign->name = $fileNameFinal;
+                                            $sign->save();
+    
+                                            DB::commit();
+                                            break;
+                                        } else {
+                                            $base64->status = 3;
+                                            $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                            $cekUnusedMeterai->status = 3;
+                                            $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                            $sign->status_id = 9;
+                                            $sign->save();
+                                            $base64->save();
+                                            $cekUnusedMeterai->save();
+                                            DB::commit();
+                                            
+                                            Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
+                                        }
+                                    }
+                                    
+                                    return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
+                                    
+                                } else {
+                                    DB::rollBack();
+                                    return response(['code' => 96, 'message' =>'Token JWT Not Found']);
+                                }
+                            } else {
+                                DB::rollBack();
+                                return response(['code' => 97, 'message' =>$cekPassword['message']]);
+                            }
+                        } else {
+                            DB::rollBack();
+                            return response(['code' => 97, 'message' =>$cekPassword['resultDesc']]);
+                        }
+                        
+                    } else {
+                        DB::rollBack();
+                        return response(['code' => 97, 'message' =>'Please use pdf file']);
+                    }
+                } else {
+                    DB::rollBack();
+                    return response(['code' => 98, 'message' => 'Email Not Found']);
+                }
+            }
+        } catch(\Illuminate\Validation\ValidationException $e) {
+            return response(['code' => 99, 'message' => $e->errors()]);
+        } catch(\Exception $e) {
+            return response(['code' => 99, 'message' => $e->getMessage()]);
+        } catch(\Throwable $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
     }

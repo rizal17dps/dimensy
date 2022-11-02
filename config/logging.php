@@ -67,6 +67,12 @@ return [
             'days' => 14,
         ],
 
+        'api_log' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/api/dimensy.log'),
+            'level' => 'info'
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

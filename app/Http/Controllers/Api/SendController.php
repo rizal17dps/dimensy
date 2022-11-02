@@ -92,7 +92,7 @@ class SendController extends Controller
 
                             }
 
-                            array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView, 'statusMeteraiDokumen' => $dataDesc));
+                            array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView ? '' : $data->meteraiView[0]->serial_number, 'status' => $data->stat->name, 'desc' => $data->descView, 'statusMeteraiDokumen' => $dataDesc));
                             
                             $i++;
                         }

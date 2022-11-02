@@ -55,4 +55,8 @@ Route::post('/cekCompanyId', '\App\Http\Controllers\Api\QuotaController@cekCompa
 Route::post('/updateInvalidSerialNumber', '\App\Http\Controllers\Api\QuotaController@updateInvalidSerialNumber');
 
 
+Route::group(['prefix'=>'v1'], function(){
+    Route::post('/meteraiSigning', '\App\Http\Controllers\Api\MeteraiController@meteraiSign');
+});
+
 
