@@ -66,7 +66,7 @@ class ResponseFormatter
             self::$response['resultCode'] = $resultCode;
             self::$response['dataId'] = $dok->id;
             self::$response['fileName'] = $dok->realname;
-            self::$response['serial_number'] = $dok->meteraiView ? '' : $dok->meteraiView[0]->serial_number;
+            self::$response['serial_number'] = $dok->meteraiView[0]->serial_number ?? '';
             self::$response['status'] = $dok->stat->name;
             self::$response['desc'] = $dok->DescView[0]->desc;
             self::$response['base64Document'] = $base64;

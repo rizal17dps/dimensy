@@ -811,16 +811,16 @@ class MeteraiController extends Controller
                                 }
                             } else {
                                 DB::rollBack();
-                                return response(['code' => 97, 'message' =>$cekPassword['message']]);
+                                return response(['code' => 98, 'message' =>$cekPassword['message']]);
                             }
                         } else {
                             DB::rollBack();
-                            return response(['code' => 97, 'message' =>$cekPassword['resultDesc']]);
+                            return response(['code' => 98, 'message' =>$cekPassword['resultDesc']]);
                         }
                         
                     } else {
                         DB::rollBack();
-                        return response(['code' => 97, 'message' =>'Please use pdf file']);
+                        return response(['code' => 98, 'message' =>'Please use pdf file']);
                     }
                 } else {
                     DB::rollBack();
