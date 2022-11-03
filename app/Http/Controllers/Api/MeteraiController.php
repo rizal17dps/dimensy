@@ -647,7 +647,7 @@ class MeteraiController extends Controller
                     ]);
                     
                     $image_base64 = base64_decode($request->input('content.base64Doc'), true);
-                    $size = (int) ceil((strlen(rtrim($request->input('content.base64Doc'), '=')) * 3 / 4) / 1000);
+                    $size = (int) round((strlen(rtrim($request->input('content.base64Doc'), '=')) * 3 / 4) / 1000);
                     
                     if($size > (int) config('app.BASE64SIZE')) {
                         DB::rollBack();
