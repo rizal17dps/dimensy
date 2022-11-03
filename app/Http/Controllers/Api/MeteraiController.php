@@ -663,7 +663,7 @@ class MeteraiController extends Controller
                    
                     if (strpos($image_base64, "%%EOF") !== false) {
                         $paramsCek = [
-                            "pdf"=> 'staging-peruri/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
+                            "pdf"=> config('app.AWS_BUCKET').'/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
                             "password"=> $request->input('content.docpass')       
                         ];
 

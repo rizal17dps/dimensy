@@ -146,6 +146,8 @@ return [
 
     //Api Dimensy
     'API_DIMENSY'  => env('API_DIMENSY'),
+    
+    'AWS_BUCKET'  => env('AWS_BUCKET'),
 
     // DImensy Utils
     'DIMENSY_UTILS' => env('DIMENSY_UTILS'),
