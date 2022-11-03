@@ -647,11 +647,11 @@ class MeteraiController extends Controller
                     ]);
                     
                     $image_base64 = base64_decode($request->input('content.base64Doc'), true);
-                    $size = (int) ceil((strlen(rtrim($request->input('content.base64Doc'), '=')) * 3 / 4) / 1024);
+                    $size = (int) ceil((strlen(rtrim($request->input('content.base64Doc'), '=')) * 3 / 4) / 1000);
                     
                     if($size > (int) config('app.BASE64SIZE')) {
                         DB::rollBack();
-                        return response(['code' => 97, 'message' =>'Document exceeds '.(((int)config('app.BASE64SIZE')) / 1024).' MB']);
+                        return response(['code' => 97, 'message' =>'Document exceeds '.(((int)config('app.BASE64SIZE')) / 1000).' MB']);
                     }
 
                     if ($image_base64 === false) {
