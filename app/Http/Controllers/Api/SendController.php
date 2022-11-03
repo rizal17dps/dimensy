@@ -79,20 +79,7 @@ class SendController extends Controller
                                 $resultCode = 97;
                             }
 
-                            foreach($data->approver as $dataApp){
-                                if($dataApp->isSign){
-                                    $dataCode = 0;
-                                    $desc = 'success';
-                                } else {
-                                    $dataCode = 99;
-                                    $desc = 'OnProgress / Error Labelling eMeterai';
-                                }
-
-                                array_push($dataDesc, array('code' => $dataCode, 'page' => $dataApp->page, 'desc' => $desc));
-
-                            }
-
-                            array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView, 'statusMeteraiDokumen' => $dataDesc));
+                            array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView));
                             
                             $i++;
                         }
