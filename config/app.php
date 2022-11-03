@@ -151,6 +151,8 @@ return [
 
     // DImensy Utils
     'DIMENSY_UTILS' => env('DIMENSY_UTILS'),
+
+    'BASE64SIZE' => env('BASE64SIZE', 25600),
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

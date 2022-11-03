@@ -647,6 +647,13 @@ class MeteraiController extends Controller
                     ]);
                     
                     $image_base64 = base64_decode($request->input('content.base64Doc'), true);
+                    $size = (int) ceil((strlen(rtrim($request->input('content.base64Doc'), '=')) * 3 / 4) / 1024);
+                    
+                    if($size > config('app.BASE64SIZE')) {
+                        DB::rollBack();
+                        return response(['code' => 97, 'message' =>'Document exceeds '.(config('app.BASE64SIZE') / 1024).' MB']);
+                    }
+
                     if ($image_base64 === false) {
                         DB::rollBack();
                         return response(['code' => 98, 'message' =>'Document corrupt']);
@@ -707,8 +714,6 @@ class MeteraiController extends Controller
                                 $signer->reason = $reason;
                                 $signer->save();
     
-                                
-
                                 $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;                        
                                 $sukses = false;
                                 $token = '';
