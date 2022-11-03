@@ -663,7 +663,7 @@ class MeteraiController extends Controller
                    
                     if (strpos($image_base64, "%%EOF") !== false) {
                         $paramsCek = [
-                            "pdf"=> 'sharefolder/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
+                            "pdf"=> 'staging-peruri/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
                             "password"=> $request->input('content.docpass')       
                         ];
 
@@ -750,7 +750,6 @@ class MeteraiController extends Controller
                                             "visURY"=> $signer->upper_right_y,
                                             "visSignaturePage"=> $signer->page
                                         ];
-    
                                         $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                         if(!isset($keyStamp['errorCode'])){
                                             $base64->status = 3;
@@ -789,17 +788,27 @@ class MeteraiController extends Controller
                                             DB::commit();
                                             break;
                                         } else {
-                                            $base64->status = 3;
-                                            $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                            $cekUnusedMeterai->status = 3;
-                                            $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                            $sign->status_id = 9;
-                                            $sign->save();
-                                            $base64->save();
-                                            $cekUnusedMeterai->save();
-                                            DB::commit();
-                                            
-                                            Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
+                                            if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
+                                                $base64->status = 3;
+                                                $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                $cekUnusedMeterai->status = 3;
+                                                $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                $sign->status_id = 9;
+                                                $sign->save();
+                                                $base64->save();
+                                                $cekUnusedMeterai->save();
+                                                DB::commit();
+                                                Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
+                                            } else {
+                                                $base64->status = 3;
+                                                $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                $sign->status_id = 9;
+                                                $sign->save();
+                                                $base64->save();
+                                                DB::commit();
+                                                Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
+                                                break;
+                                            }
                                         }
                                     }
                                     
