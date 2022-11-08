@@ -698,7 +698,7 @@ class MeteraiController extends Controller
                                 $base64 = new Base64DokModel;
                                 $base64->dokumen_id = $sign->id;
                                 $base64->base64Doc = $request->input('content.base64Doc');
-                                $base64->status = 1;
+                                $base64->status = 4;
                                 $base64->save();
     
                                 $signer = new ListSigner();
