@@ -738,83 +738,86 @@ class MeteraiController extends Controller
                                             $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->whereRaw('meterai.id %2= 1')->first();
                                         }
 
-                                        $params = [
-                                            "certificatelevel"=> "NOT_CERTIFIED",
-                                            "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
-                                            "docpass"=> $request->input('content.docpass'),
-                                            "jwToken"=> $token,
-                                            "location"=> $request->input('content.location'),
-                                            "profileName"=> "emeteraicertificateSigner",
-                                            "reason"=> $docType->nama ?? 'Dokumen Lain-lain',
-                                            "refToken"=> $cekUnusedMeterai->serial_number,
-                                            "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
-                                            "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
-                                            "visLLX"=> $signer->lower_left_x,
-                                            "visLLY"=> $signer->lower_left_y,
-                                            "visURX"=> $signer->upper_right_x,
-                                            "visURY"=> $signer->upper_right_y,
-                                            "visSignaturePage"=> $signer->page
-                                        ];
-                                        $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
-                                        if(!isset($keyStamp['errorCode'])){
-                                            $base64->status = 3;
-                                            $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                            $sign->status_id = 9;
-                                            $sign->save();
-                                            $base64->save();
-                                            DB::commit();
-                                        } else if($keyStamp['errorCode'] == 0) {
-                                            $cekUnusedMeterai->status = 1;
-                                            $cekUnusedMeterai->dokumen_id = $sign->id;
-                                            $cekUnusedMeterai->save();
-    
-                                            if($cekUnusedMeterai->status == 1){
-                                                $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $sign->user->company_id)->first();
-                                            
-                                                if(!$this->companyService->historyPemakaian($quotaMeterai, $sign->users_id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
-                                                    DB::rollBack();
-                                                    throw new \Exception('Error Create History Pemakaian', 500);
-                                                }
-                
-                                                if(!$this->companyService->quotaKurang($quotaMeterai, $sign->user->company_id)){
-                                                    DB::rollBack();
-                                                    throw new \Exception('Error Create History Pemakaian', 500);
-                                                }
-                                            }
-    
-                                            $base64->status = 2;
-                                            $base64->desc = '';
-                                            $base64->save();
-    
-                                            $sign->status_id = 8;
-                                            $sign->name = $fileNameFinal;
-                                            $sign->save();
-    
-                                            DB::commit();
-                                            break;
-                                        } else {
-                                            if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
+                                        if($cekUnusedMeterai){
+                                            $params = [
+                                                "certificatelevel"=> "NOT_CERTIFIED",
+                                                "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
+                                                "docpass"=> $request->input('content.docpass'),
+                                                "jwToken"=> $token,
+                                                "location"=> $request->input('content.location'),
+                                                "profileName"=> "emeteraicertificateSigner",
+                                                "reason"=> $docType->nama ?? 'Dokumen Lain-lain',
+                                                "refToken"=> $cekUnusedMeterai->serial_number,
+                                                "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
+                                                "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
+                                                "visLLX"=> $signer->lower_left_x,
+                                                "visLLY"=> $signer->lower_left_y,
+                                                "visURX"=> $signer->upper_right_x,
+                                                "visURY"=> $signer->upper_right_y,
+                                                "visSignaturePage"=> $signer->page
+                                            ];
+                                            $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                            if(!isset($keyStamp['errorCode'])){
                                                 $base64->status = 3;
                                                 $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                                $cekUnusedMeterai->status = 3;
-                                                $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
                                                 $sign->status_id = 9;
                                                 $sign->save();
                                                 $base64->save();
+                                                DB::commit();
+                                            } else if($keyStamp['errorCode'] == 0) {
+                                                $cekUnusedMeterai->status = 1;
+                                                $cekUnusedMeterai->dokumen_id = $sign->id;
                                                 $cekUnusedMeterai->save();
-                                                DB::commit();
-                                                Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
-                                            } else {
-                                                $base64->status = 3;
-                                                $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                                $sign->status_id = 9;
-                                                $sign->save();
+        
+                                                if($cekUnusedMeterai->status == 1){
+                                                    $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $sign->user->company_id)->first();
+                                                
+                                                    if(!$this->companyService->historyPemakaian($quotaMeterai, $sign->users_id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                                                        DB::rollBack();
+                                                        throw new \Exception('Error Create History Pemakaian', 500);
+                                                    }
+                    
+                                                    if(!$this->companyService->quotaKurang($quotaMeterai, $sign->user->company_id)){
+                                                        DB::rollBack();
+                                                        throw new \Exception('Error Create History Pemakaian', 500);
+                                                    }
+                                                }
+        
+                                                $base64->status = 2;
+                                                $base64->desc = '';
                                                 $base64->save();
+        
+                                                $sign->status_id = 8;
+                                                $sign->name = $fileNameFinal;
+                                                $sign->save();
+        
                                                 DB::commit();
-                                                Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
                                                 break;
+                                            } else {
+                                                if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
+                                                    $base64->status = 3;
+                                                    $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                    $cekUnusedMeterai->status = 3;
+                                                    $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                    $sign->status_id = 9;
+                                                    $sign->save();
+                                                    $base64->save();
+                                                    $cekUnusedMeterai->save();
+                                                    DB::commit();
+                                                    Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
+                                                } else {
+                                                    $base64->status = 3;
+                                                    $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                    $sign->status_id = 9;
+                                                    $sign->save();
+                                                    $base64->save();
+                                                    DB::commit();
+                                                    Log::channel('api_log')->info("dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp));
+                                                    break;
+                                                }
                                             }
                                         }
+                                        
                                     }
                                     
                                     return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
