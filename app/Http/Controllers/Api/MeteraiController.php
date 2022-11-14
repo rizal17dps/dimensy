@@ -730,13 +730,7 @@ class MeteraiController extends Controller
                                     config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
 
                                     for($i = 1; $i<=5; $i++){
-                                        if($sign->id % 2 == 0){
-                                            //genap
-                                            $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->whereRaw('meterai.id %2= 0')->first();
-                                        } else {
-                                            //ganjil
-                                            $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->whereRaw('meterai.id %2= 1')->first();
-                                        }
+                                        $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
 
                                         if($cekUnusedMeterai){
                                             $params = [
@@ -825,7 +819,6 @@ class MeteraiController extends Controller
                                             DB::commit();
                                             Log::channel('api_log')->info("Generated Meterai not Found");
                                         }
-                                        
                                     }
                                     
                                     return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
