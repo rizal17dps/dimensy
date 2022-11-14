@@ -816,6 +816,10 @@ class MeteraiController extends Controller
                                                     break;
                                                 }
                                             }
+                                        } else {
+                                            $base64->status = 1;
+                                            $base64->save();
+                                            DB::commit();
                                         }
                                         
                                     }

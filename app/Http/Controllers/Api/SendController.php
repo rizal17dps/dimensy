@@ -44,7 +44,6 @@ class SendController extends Controller
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
 
-
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
