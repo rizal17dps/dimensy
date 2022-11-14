@@ -817,9 +817,13 @@ class MeteraiController extends Controller
                                                 }
                                             }
                                         } else {
-                                            $base64->status = 1;
+                                            $base64->status = 3;
+                                            $base64->desc = 'Generated Meterai not Found';
+                                            $sign->status_id = 9;
+                                            $sign->save();
                                             $base64->save();
                                             DB::commit();
+                                            Log::channel('api_log')->info("Generated Meterai not Found");
                                         }
                                         
                                     }
