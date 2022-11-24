@@ -24,33 +24,8 @@ class ResponseFormatter
         'base64Document' => null
     ];
 
-    /**
-     * Give success response.
-     */
-    public static function success($data = null, $message = null, $total_data = null)
-    {
-        self::$response['meta']['message'] = $message;
-        self::$response['data'] = $data;
-        self::$response['total_data'] = $total_data;
-
-        return response()->json(self::$response);
-    }
-
-    /**
-     * Give error response.
-     */
-    public static function error($data = null, $message = null, $code = 99)
-    {
-        self::$response['meta']['status'] = 'error';
-        self::$response['meta']['code'] = $code;
-        self::$response['meta']['message'] = $message;
-        self::$response['data'] = $data;
-
-        return response()->json(self::$response);
-    }
-
     public static function getDocument($userId, $id) {
-        $dok = Sign::with('meteraiView', 'descView', 'approver')->where('users_id', (int)$userId)->where('id', (int)$id)->first();
+        $dok = Sign::with('meteraiView', 'descView')->where('users_id', (int)$userId)->where('id', (int)$id)->first();
         if($dok){
             $resultCode = 99;
             $base64 = '';
@@ -63,6 +38,7 @@ class ResponseFormatter
             } else if($dok->status_id == 9) {
                 $resultCode = 97;
             }
+
             self::$response['resultCode'] = $resultCode;
             self::$response['dataId'] = $dok->id;
             self::$response['fileName'] = $dok->realname;
@@ -72,7 +48,9 @@ class ResponseFormatter
             self::$response['base64Document'] = $base64;
             return self::$response;
         } else {
-            return ['desc' => "Dokumen Tidak Ditemukan"];
+            self::$response['resultCode'] = 99;
+            self::$response['desc'] = 'Data tidak ditemukan';
+            return self::$response;
         }
     }
 }

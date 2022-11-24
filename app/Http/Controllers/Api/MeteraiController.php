@@ -818,6 +818,7 @@ class MeteraiController extends Controller
                                             $base64->save();
                                             DB::commit();
                                             Log::channel('api_log')->info("Generated Meterai not Found");
+                                            break;
                                         }
                                     }
                                     
