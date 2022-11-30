@@ -132,7 +132,7 @@ class MeteraiController extends Controller
                 }
 
                 $user = User::where('email', $email)->first();
-                if($user){
+                if($userx){
                     $request->validate([
                         'content' => 'required|array',
                         'content.filename' => 'required|max:255|regex:/^[a-zA-Z0-9 _.-]+$/u',
@@ -237,10 +237,13 @@ class MeteraiController extends Controller
                 }
             }
         } catch(\Illuminate\Validation\ValidationException $e) {
+            Log::channel('sentry')->info("ERROR ".json_encode($e->errors()));
             return response(['code' => 99, 'message' => $e->errors()]);
         } catch(\Exception $e) {
+            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             return response(['code' => 99, 'message' => $e->getMessage()]);
         } catch(\Throwable $e) {
+            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             return response(['code' => 98, 'message' => $e->getMessage()]);
         }
     }
@@ -849,8 +852,10 @@ class MeteraiController extends Controller
         } catch(\Illuminate\Validation\ValidationException $e) {
             return response(['code' => 99, 'message' => $e->errors()]);
         } catch(\Exception $e) {
+            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             return response(['code' => 99, 'message' => $e->getMessage()]);
         } catch(\Throwable $e) {
+            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
     }

@@ -18,3 +18,7 @@ Route::get('/', function () {
 });
 
 Route::get('/api-swagger', function(){ return view('api-swagger.index'); });
+
+Route::get('/debug-sentry', function () {
+    throw new Exception('My first Sentry error!');
+});
