@@ -852,10 +852,10 @@ class MeteraiController extends Controller
         } catch(\Illuminate\Validation\ValidationException $e) {
             return response(['code' => 99, 'message' => $e->errors()]);
         } catch(\Exception $e) {
-            Log::channel('sentry')->info("ERROR ".$e->getMessage());
+            Log::channel('sentry')->error("ERROR ".$e->getMessage());
             return response(['code' => 99, 'message' => $e->getMessage()]);
         } catch(\Throwable $e) {
-            Log::channel('sentry')->info("ERROR ".$e->getMessage());
+            Log::channel('sentry')->error("ERROR ".$e->getMessage());
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
     }

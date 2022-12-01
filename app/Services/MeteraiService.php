@@ -60,17 +60,20 @@ class MeteraiService
         } catch (\ClientErrorResponseException $e) {
             $x['errorCode'] = "408";
             $x['message'] = $e->getResponse()->getBody(true);
+            Log::channel('sentry')->info("ERROR ".$e->getResponse()->getBody(true));
             return $x;
         } catch (ConnectException $e) {
             // Connection exceptions are not caught by RequestException
             $x['errorCode'] = "408";
             $x['message'] = $e->getMessage();
+            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             return $x;
             //die;
         } catch (RequestException $e) {
             // Connection exceptions are not caught by RequestException
             $x['errorCode'] = "500";
             $x['message'] = $e->getMessage();
+            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             return $x;
         }
     }
