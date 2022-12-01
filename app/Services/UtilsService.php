@@ -41,11 +41,13 @@ class UtilsService
             }
 
         } catch (\ClientErrorResponseException $e) {
+            Log::channel('sentry')->error("ERROR ".$e->getResponse()->getBody(true));
             return $e->getResponse()->getBody(true);
         } catch (ConnectException $e) {
             // Connection exceptions are not caught by RequestException
             $x['resultCode'] = "408";
             $x['resultDesc'] = $e->getMessage();
+            Log::channel('sentry')->error("ERROR ".$e->getMessage());
             return $x;
             //die;
         } catch (RequestException $e) {
@@ -53,6 +55,7 @@ class UtilsService
             //Log::error($e->getResponse());
             $x['resultCode'] = "500";
             $x['resultDesc'] = "API Gateway encountered an error";
+            Log::channel('sentry')->error("ERROR ".$e->getMessage());
             return $x;
             //dd($e->getResponse());
         }
