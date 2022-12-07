@@ -132,7 +132,7 @@ class MeteraiController extends Controller
                 }
 
                 $user = User::where('email', $email)->first();
-                if($userx){
+                if($user){
                     $request->validate([
                         'content' => 'required|array',
                         'content.filename' => 'required|max:255|regex:/^[a-zA-Z0-9 _.-]+$/u',
