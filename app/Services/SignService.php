@@ -80,7 +80,7 @@ class SignService
     {
         try{
             
-            $auth = AuthModel::whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
+            $auth = AuthModel::where('id', 1)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
             if($auth){
                 $x = $this->getResponse(
                     $uri,$params,$auth->token

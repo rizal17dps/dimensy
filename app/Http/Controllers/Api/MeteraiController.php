@@ -20,6 +20,7 @@ use App\Models\Quota;
 use App\Models\Base64DokModel;
 use App\Models\PricingModel;
 use App\Models\JenisDokumen;
+use App\Models\AuthModel;
 use mikehaertl\pdftk\Pdf;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\DB;
@@ -721,11 +722,25 @@ class MeteraiController extends Controller
                                 $sukses = false;
                                 $token = '';
                                 for($i = 1; $i<=3; $i++){
-                                    $cek = $dimensyService->callAPI('api/getJwt');
-                                    if($cek['code'] == 0){
-                                        $token = $cek['data'];
+                                    $auth = AuthModel::where('id', 2)->whereDate('expired', '<', date("Y-m-d H:i:s"))->first();
+                                    if($auth){
+                                        $token = $auth->token;
                                         $sukses = true;
-                                        break;
+                                    } else {
+                                        $cek = $dimensyService->callAPI('api/getJwt');
+                                        if ($cek['code'] == "0") {
+                                            
+                                            AuthModel::truncate();
+                                            $auth = new AuthModel();
+                                            $auth->id = 2;
+                                            $auth->token = $cek['data'];
+                                            $auth->expired = $cek["expiredDate"];
+                                            $auth->created = date("Y-m-d H:i:s");
+                                            $auth->save();
+
+                                            $token = $cek['data'];
+                                            $sukses = true;
+                                        }
                                     }
                                 }
 
@@ -753,6 +768,7 @@ class MeteraiController extends Controller
                                                 "visURY"=> $signer->upper_right_y,
                                                 "visSignaturePage"=> $signer->page
                                             ];
+
                                             $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                             if(!isset($keyStamp['errorCode'])){
                                                 $base64->status = 3;

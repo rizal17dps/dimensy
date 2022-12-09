@@ -78,18 +78,35 @@ class MeteraiService
         }
     }
 
-    public function callAPI(string $uri = null, array $params = [], $type, $method)
+    public function callAPI(string $uri = null, array $params = [], $type, $method, $token = "")
     {
         try{
             
-            $cek = $this->dimensyService->callAPI('api/getJwt');
-            if ($cek['code'] == "0") {
+            $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
+            if($auth){
                 $x = $this->getResponse(
-                    $uri,$params,$type,$method,$cek['data']
+                    $uri,$params,$type,$method,$auth->token
                 );
-                $x['data'] = $cek['data'];
-            }  else {                
-                $x = $cek;
+                $x['data'] = $auth->token;
+            } else {
+                $cek = $this->dimensyService->callAPI('api/getJwt');
+                if ($cek['code'] == "0") {
+                    
+                    AuthModel::truncate();
+                    $auth = new AuthModel();
+                    $auth->id = 2;
+                    $auth->token = $cek['data'];
+                    $auth->expired = $cek["expiredDate"];
+                    $auth->created = date("Y-m-d H:i:s");
+                    $auth->save();
+
+                    $x = $this->getResponse(
+                        $uri,$params,$type,$method,$cek['data']
+                    );
+                    $x['data'] = $cek['data'];
+                }  else {                
+                    $x = $cek;
+                }
             }
             
             return $x;
