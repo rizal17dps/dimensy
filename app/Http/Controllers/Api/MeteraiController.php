@@ -584,9 +584,10 @@ class MeteraiController extends Controller
     }
 
     public function meteraiSign(Request $request, DimensyService $dimensyService){
+        $mulai = date("d-m-Y h:i:s");
+        $startKirim = microtime(true);
         DB::beginTransaction();
         try{
-            
             if($this->utils->block()){
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
@@ -727,9 +728,14 @@ class MeteraiController extends Controller
                                         $token = $auth->token;
                                         $sukses = true;
                                     } else {
+                                        $startKirimJwt = microtime(true);
+
                                         $cek = $dimensyService->callAPI('api/getJwt');
                                         if ($cek['code'] == "0") {
-                                            
+                                            $selesai_jwt = date("d-m-Y h:i:s");
+                                            $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
+                                            Log::channel('sentry')->info("Selesai stamp ke peruri, mulai ".$mulai." selesai ".$selesai_jwt. ", durasi ".$time_elapsed_secs_jwt);
+                                                
                                             AuthModel::truncate();
                                             $auth = new AuthModel();
                                             $auth->id = 2;
@@ -768,8 +774,10 @@ class MeteraiController extends Controller
                                                 "visURY"=> $signer->upper_right_y,
                                                 "visSignaturePage"=> $signer->page
                                             ];
+                                            $startKirimStamp = microtime(true);
 
                                             $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                            
                                             if(!isset($keyStamp['errorCode'])){
                                                 $base64->status = 3;
                                                 $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
@@ -777,7 +785,14 @@ class MeteraiController extends Controller
                                                 $sign->save();
                                                 $base64->save();
                                                 DB::commit();
+                                                $selesai_peruri = date("d-m-Y h:i:s");
+                                                $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
+                                                Log::channel('sentry')->info("Gagal stamp ke peruri, mulai ".$mulai." selesai ".$selesai_peruri. ", durasi ".$time_elapsed_secs_stamp);
+                                                
                                             } else if($keyStamp['errorCode'] == 0) {
+                                                $selesai_peruri = date("d-m-Y h:i:s");
+                                                $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
+                                                Log::channel('sentry')->info("Selesai stamp ke peruri, mulai ".$mulai." selesai ".$selesai_peruri. ", durasi ".$time_elapsed_secs_stamp);
                                                 $cekUnusedMeterai->status = 1;
                                                 $cekUnusedMeterai->dokumen_id = $sign->id;
                                                 $cekUnusedMeterai->save();
@@ -837,10 +852,18 @@ class MeteraiController extends Controller
                                             $base64->save();
                                             DB::commit();
                                             Log::channel('api_log')->info("Generated Meterai not Found");
+                                            $selesai = date("d-m-Y h:i:s");
+    
+                                            $time_elapsed_secs = microtime(true) - $startKirim;
+                                            Log::channel('sentry')->info("Generated Meterai not Found stamp, mulai ".$mulai." selesai ".$selesai. ", durasi ".$time_elapsed_secs);
                                             break;
                                         }
                                     }
-                                    
+                                    $selesai = date("d-m-Y h:i:s");
+    
+                                    $time_elapsed_secs = microtime(true) - $startKirim;
+                                    Log::channel('sentry')->info("Selesai stamp, mulai ".$mulai." selesai ".$selesai. ", durasi ".$time_elapsed_secs);
+
                                     return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
                                     
                                 } else {

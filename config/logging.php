@@ -70,7 +70,7 @@ return [
         'api_log' => [
             'driver' => 'single',
             'path' => storage_path('logs/api/dimensy.log'),
-            'level' => 'info'
+            'level' => 'debug'
         ],
 
         'slack' => [
