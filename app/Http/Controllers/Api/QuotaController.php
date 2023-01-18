@@ -93,6 +93,7 @@ class QuotaController extends Controller
                     return response(['code' => 0, 'data' => $list ,'message' =>'Success']);
                 } else {
                     DB::rollBack();
+                    $time_elapsed_secs = microtime(true) - $start;
                     Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
                     return response(['code' => 98, 'message' => 'Email Not Found']);
                 }
