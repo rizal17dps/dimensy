@@ -156,7 +156,7 @@ class SendController extends Controller
                 } else {
                     $time_elapsed_secs = microtime(true) - $start;
                     Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document not found  Response time: ".$time_elapsed_secs);
-                     return response(['code' => 97, 'message' => 'Document not found']);
+                    return response(['code' => 97, 'message' => 'Document not found']);
                 }                
             }
             

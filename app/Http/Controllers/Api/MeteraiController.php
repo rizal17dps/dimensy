@@ -39,9 +39,13 @@ class MeteraiController extends Controller
     }
 
     public function jenisDok(Request $request) {
+        $start = microtime(true);
         DB::beginTransaction();
         try{
+            config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
             if($this->utils->block()){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
 
@@ -50,10 +54,14 @@ class MeteraiController extends Controller
 
             if(!$header){
                 DB::commit();
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Api Key Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Api Key Required']);
             }
 
             if(!$email){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
             
@@ -62,22 +70,32 @@ class MeteraiController extends Controller
             if(!$cekToken){
                 $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
                 DB::commit();
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - apiKey Mismatch  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             }  else if(!$cekEmail){
                 DB::rollBack();
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
                 $user = User::where('email', $email)->first();
                 if($user){
                     $jenisDok = DB::table('jenis_dokumen')->select('id', 'nama')->get();
                     DB::commit();
+                    $time_elapsed_secs = microtime(true) - $start;
+                    Log::channel('api_log')->info("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
                     return response(['code' => 0, 'data' => $jenisDok ,'message' =>'Success']);
                 } else {
                     DB::rollBack();
+                    $time_elapsed_secs = microtime(true) - $start;
+                    Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email not found  Response time: ".$time_elapsed_secs);
                     return response(['code' => 98, 'message' => 'Email Not Found']);
                 }
             }
         } catch(\Exception $e) {
+            $time_elapsed_secs = microtime(true) - $start;
+            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()."  Response time: ".$time_elapsed_secs);
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }  
     }
