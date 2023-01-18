@@ -169,9 +169,13 @@ class SendController extends Controller
     }
 
     public function downloadPath(Request $request, $id) {
+        $start = microtime(true);
         DB::beginTransaction();
         try{
+            config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
             if($this->utils->block()){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
             
@@ -179,20 +183,27 @@ class SendController extends Controller
             $email = $request->header('email');
 
             if(!$header){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Api Key Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Api Key Required']);
             }
 
             if(!$email){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
 
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
-                
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - apiKey Mismatch  Response time: ".$time_elapsed_secs);
                 DB::commit();
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             } else if(!$cekEmail){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
                 DB::rollBack();
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
@@ -204,28 +215,42 @@ class SendController extends Controller
                         $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Signed')->first();
                         if($dokSign){
                             $data['pathDoc'] = Storage::disk('minio')->url($dok->user->company_id .'/dok/' . $dok->users_id . '/ttd/' . $dokSign->name);
+                            $time_elapsed_secs = microtime(true) - $start;
+                            Log::channel('api_log')->info("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
                             return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
                         } else {
+                            $time_elapsed_secs = microtime(true) - $start;
+                            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document Not Found  Response time: ".$time_elapsed_secs);
                             return response(['code' => 96, 'message' => 'Document not found']);
                         }                  
                     } else if ($dok->status_id == 6) {
                         $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Stamp')->first();
                         if($dokSign){
                             $data['pathDoc'] = Storage::disk('minio')->url($dok->user->company_id .'/dok/' . $dok->users_id . '/stamp/' . $dokSign->name);
+                            $time_elapsed_secs = microtime(true) - $start;
+                            Log::channel('api_log')->info("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
                             return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
                         } else {
+                            $time_elapsed_secs = microtime(true) - $start;
+                            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document Not Found  Response time: ".$time_elapsed_secs);
                             return response(['code' => 96, 'message' => 'Document not found']);
                         }    
                     }else {
                         $data['pathDoc'] = Storage::disk('minio')->url($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name);
+                        $time_elapsed_secs = microtime(true) - $start;
+                        Log::channel('api_log')->info("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
                         return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
                     }                    
                 } else {
+                    $time_elapsed_secs = microtime(true) - $start;
+                    Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document Not Found  Response time: ".$time_elapsed_secs);
                     return response(['code' => 97, 'message' => 'Document not found']);
                 }                
             }
             
         } catch(\Exception $e) {
+            $time_elapsed_secs = microtime(true) - $start;
+            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()."  Response time: ".$time_elapsed_secs);
             DB::rollBack();
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
