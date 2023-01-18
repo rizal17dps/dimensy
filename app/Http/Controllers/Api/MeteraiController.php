@@ -101,10 +101,13 @@ class MeteraiController extends Controller
     }
 
     public function signingMeterai(Request $request) {
+        $start = microtime(true);
         DB::beginTransaction();
         try{
-            
+            config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
             if($this->utils->block()){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
             
@@ -113,10 +116,14 @@ class MeteraiController extends Controller
 
             if(!$header){
                 DB::commit();
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Api Key Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Api Key Required']);
             }
 
             if(!$email){
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
             
@@ -125,13 +132,19 @@ class MeteraiController extends Controller
             if(!$cekToken){
                 $this->utils->logBruteForce(\Request::getClientIp(), $header, $email);
                 DB::commit();
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - apiKey Mismatch  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             }  else if(!$cekEmail){
                 DB::rollBack();
+                $time_elapsed_secs = microtime(true) - $start;
+                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
 
                 if($this->utils->cekExpired($cekEmail->company->mapsCompany->expired_date)){
+                    $time_elapsed_secs = microtime(true) - $start;
+                    Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Your package has run out, please update your package Response time: ".$time_elapsed_secs);
                     return response(['code' => 95, 'message' => 'Your package has run out, please update your package']);
                 }
 
@@ -147,6 +160,8 @@ class MeteraiController extends Controller
                 //check quota local
                 if($this->companyService->cek($quotaMeterai, $cekEmail->id)){
                     DB::rollBack();
+                    $time_elapsed_secs = microtime(true) - $start;
+                    Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - You've ran out of quota Response time: ".$time_elapsed_secs);
                     return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
                 }
 
@@ -171,11 +186,15 @@ class MeteraiController extends Controller
                     $image_base64 = base64_decode($request->input('content.base64Doc'), true);
                     if ($image_base64 === false) {
                         DB::rollBack();
+                        $time_elapsed_secs = microtime(true) - $start;
+                        Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document corrupt Response time: ".$time_elapsed_secs);
                         return response(['code' => 98, 'message' =>'Document corrupt']);
                     } else {
                         $cekLagi = base64_encode($image_base64);
                         if ($request->input('content.base64Doc') != $cekLagi) {
                             DB::rollBack();
+                            $time_elapsed_secs = microtime(true) - $start;
+                            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document corrupt Response time: ".$time_elapsed_secs);
                             return response(['code' => 98, 'message' =>'Document corrupt']);
                         }
                     }
@@ -236,33 +255,49 @@ class MeteraiController extends Controller
                                     $i++;
                                 }      
                                 DB::commit();
+                                $time_elapsed_secs = microtime(true) - $start;
+                                Log::channel('api_log')->info("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success Response time: ".$time_elapsed_secs);
                                 return response(['code' => 0 ,'dataId' => $sign->id, 'message' =>'Success']);
                             } else {
                                 DB::rollBack();
+                                $time_elapsed_secs = microtime(true) - $start;
+                                Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$cekPassword['message']." Response time: ".$time_elapsed_secs);
                                 return response(['code' => 98, 'message' =>$cekPassword['message']]);
                             }
                         } else {
                             DB::rollBack();
+                            $time_elapsed_secs = microtime(true) - $start;
+                            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$cekPassword['resultDesc']." Response time: ".$time_elapsed_secs);
                             return response(['code' => 98, 'message' =>$cekPassword['resultDesc']]);
                         }
                         
                     } else {
                         DB::rollBack();
+                        $time_elapsed_secs = microtime(true) - $start;
+                        Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Please use pdf file Response time: ".$time_elapsed_secs);
                         return response(['code' => 98, 'message' =>'Please use pdf file']);
                     }
                 } else {
                     DB::rollBack();
+                    $time_elapsed_secs = microtime(true) - $start;
+                    Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found Response time: ".$time_elapsed_secs);
                     return response(['code' => 98, 'message' => 'Email Not Found']);
                 }
             }
         } catch(\Illuminate\Validation\ValidationException $e) {
             Log::channel('sentry')->info("ERROR ".json_encode($e->errors()));
+            $time_elapsed_secs = microtime(true) - $start;
+            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".json_encode($e->errors())." Response time: ".$time_elapsed_secs);
             return response(['code' => 99, 'message' => $e->errors()]);
         } catch(\Exception $e) {
             Log::channel('sentry')->info("ERROR ".$e->getMessage());
+            $time_elapsed_secs = microtime(true) - $start;
+            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
             return response(['code' => 99, 'message' => $e->getMessage()]);
         } catch(\Throwable $e) {
             Log::channel('sentry')->info("ERROR ".$e->getMessage());
+            $time_elapsed_secs = microtime(true) - $start;
+            Log::channel('api_log')->error("IP : ".\Request::ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
             return response(['code' => 98, 'message' => $e->getMessage()]);
         }
     }
