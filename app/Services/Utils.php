@@ -5,6 +5,7 @@ namespace App\Services;
 use DateTime;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\BruteModel;
+use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
@@ -46,7 +47,7 @@ class Utils
     public function logBruteForce($ip, $token, $email){
         try{
             $log = new BruteModel();
-            $log->ip_address = $ip;
+            $log->ip_address = ResponseFormatter::get_client_ip();
             $log->token = $token;
             $log->email = $email;
             $log->save();
@@ -57,7 +58,7 @@ class Utils
     }
 
     public function block() {
-        $ip = \Request::getClientIp();
+        $ip = ResponseFormatter::get_client_ip();
         $count = BruteModel::where("created_at", ">=", date("Y-m-d H:i:s", strtotime("-1 hours")))->where("ip_address", $ip)->get();
         if($count->count() >= 10){
             return true;
