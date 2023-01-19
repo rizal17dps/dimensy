@@ -944,6 +944,8 @@ class MeteraiController extends Controller
                                                 $sign->save();
         
                                                 DB::commit();
+                                                $time_elapsed_secs = microtime(true) - $start;
+                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
                                                 break;
                                             } else {
                                                 if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
@@ -991,7 +993,6 @@ class MeteraiController extends Controller
                                     $time_elapsed_secs = microtime(true) - $startKirim;
                                     Log::channel('sentry')->info("Selesai stamp, mulai ".$mulai." selesai ".$selesai. ", durasi ".$time_elapsed_secs);
 
-                                    Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
                                     return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
                                     
                                 } else {
