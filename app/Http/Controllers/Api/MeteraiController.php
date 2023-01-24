@@ -203,6 +203,7 @@ class MeteraiController extends Controller
                     Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
                    
                     if (strpos($image_base64, "%%EOF") !== false) {
+
                         $paramsCek = [
                             "pdf"=> 'sharefolder/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
                             "password"=> $request->input('content.docpass')       
@@ -793,6 +794,12 @@ class MeteraiController extends Controller
                     Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
                    
                     if (strpos($image_base64, "%%EOF") !== false) {
+                        
+                        $docPass = $request->input('content.docpass');
+                        if(strpos($image_base64, '/Encrypt') === false ){
+                            $docPass = '';
+                        }
+
                         $paramsCek = [
                             "pdf"=> config('app.AWS_BUCKET').'/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
                             "password"=> $request->input('content.docpass')       
@@ -877,7 +884,7 @@ class MeteraiController extends Controller
                                             $params = [
                                                 "certificatelevel"=> "NOT_CERTIFIED",
                                                 "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
-                                                "docpass"=> $request->input('content.docpass'),
+                                                "docpass"=> $docPass,
                                                 "jwToken"=> $token,
                                                 "location"=> $request->input('content.location'),
                                                 "profileName"=> "emeteraicertificateSigner",
