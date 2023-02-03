@@ -146,13 +146,14 @@ return [
 
     //Api Dimensy
     'API_DIMENSY'  => env('API_DIMENSY'),
-    
+
     'AWS_BUCKET'  => env('AWS_BUCKET'),
 
     // DImensy Utils
     'DIMENSY_UTILS' => env('DIMENSY_UTILS'),
 
     'BASE64SIZE' => env('BASE64SIZE', 25000),
+    'MAX_EXECUTION_TIME' => env('MAX_EXECUTION_TIME', 0),
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
