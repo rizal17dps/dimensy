@@ -683,6 +683,7 @@ class MeteraiController extends Controller
 
     public function meteraiSign(Request $request, DimensyService $dimensyService){
         ini_set('max_execution_time', config('app.MAX_EXECUTION_TIME'));
+        return response(['code' => 99, 'pesan' => ini_get('max_execution_time')]);
         $mulai = date("d-m-Y h:i:s");
         $startKirim = microtime(true);
         $start = microtime(true);
