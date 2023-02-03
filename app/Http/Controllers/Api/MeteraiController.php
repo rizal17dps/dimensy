@@ -682,7 +682,8 @@ class MeteraiController extends Controller
     }
 
     public function meteraiSign(Request $request, DimensyService $dimensyService){
-        set_time_limit(config('app.MAX_EXECUTION_TIME'));
+        ini_set('max_execution_time', config('app.MAX_EXECUTION_TIME'));
+        dd(config('app.MAX_EXECUTION_TIME'));
         $mulai = date("d-m-Y h:i:s");
         $startKirim = microtime(true);
         $start = microtime(true);
@@ -1035,6 +1036,11 @@ class MeteraiController extends Controller
                     return response(['code' => 98, 'message' => 'Email Not Found']);
                 }
             }
+        }  catch(\Throwable $e) {
+            Log::channel('sentry')->info("ERROR ".$e->getMessage());
+            $time_elapsed_secs = microtime(true) - $start;
+            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
+            return response(['code' => 98, 'message' => $e->getMessage()]);
         } catch(\Illuminate\Validation\ValidationException $e) {
             Log::channel('sentry')->info("ERROR ".json_encode($e->errors()));
             $time_elapsed_secs = microtime(true) - $start;
@@ -1045,11 +1051,6 @@ class MeteraiController extends Controller
             $time_elapsed_secs = microtime(true) - $start;
             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
             return response(['code' => 99, 'message' => $e->getMessage()]);
-        } catch(\Throwable $e) {
-            Log::channel('sentry')->info("ERROR ".$e->getMessage());
-            $time_elapsed_secs = microtime(true) - $start;
-            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
-            return response(['code' => 98, 'message' => $e->getMessage()]);
         }
     }
 }

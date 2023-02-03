@@ -41,4 +41,12 @@ class Handler extends ExceptionHandler
             }
         });
     }
+
+    public function render($request, Throwable $exception)
+    {
+        return response()->json([
+            'code' => 99,
+            'message' => 'Timeout peruri please retry'
+        ]);
+    }
 }
