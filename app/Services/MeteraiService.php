@@ -44,18 +44,20 @@ class MeteraiService
                     'content-type' => 'application/json',
                 ];
             }
-            
+
             $request = $this->http->request($method, $full_path, [
                 'headers' => $head,
                 'json' => $params,
                 'verify' => false,
+                'timeout' => config('app.MAX_EXECUTION_TIME'),
+                'connect_timeout' =>config('app.MAX_EXECUTION_TIME')
             ]);
-            
+
             $response = $request ? $request->getBody()->getContents() : null;
             $status = $request ? $request->getStatusCode() : 500;
            if ($response && $status === 200 && $response !== 'null') {
                 return json_decode($response, true);
-            } 
+            }
 
         } catch (\ClientErrorResponseException $e) {
             $x['errorCode'] = "408";
@@ -81,7 +83,7 @@ class MeteraiService
     public function callAPI(string $uri = null, array $params = [], $type, $method, $token = "")
     {
         try{
-            
+
             $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
             if($auth){
                 $x = $this->getResponse(
@@ -91,7 +93,7 @@ class MeteraiService
             } else {
                 $cek = $this->dimensyService->callAPI('api/getJwt');
                 if ($cek['code'] == "0") {
-                    
+
                     AuthModel::truncate();
                     $auth = new AuthModel();
                     $auth->id = 2;
@@ -104,11 +106,11 @@ class MeteraiService
                         $uri,$params,$type,$method,$cek['data']
                     );
                     $x['data'] = $cek['data'];
-                }  else {                
+                }  else {
                     $x = $cek;
                 }
             }
-            
+
             return $x;
         } catch (\Exception $e) {
             //$this->logError(\Request::getClientIp(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
