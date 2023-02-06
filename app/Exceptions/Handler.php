@@ -41,4 +41,9 @@ class Handler extends ExceptionHandler
             }
         });
     }
+
+    public function render($request, Throwable $exception)
+    {
+        return response(['code' => 99, 'message' => $exception->getMessage()]);
+    }
 }
