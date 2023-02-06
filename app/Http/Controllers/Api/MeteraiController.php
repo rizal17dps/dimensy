@@ -686,7 +686,6 @@ class MeteraiController extends Controller
         $startKirim = microtime(true);
         $start = microtime(true);
         DB::beginTransaction();
-        dd(ini_get('safe_mode'));
         try{
             set_time_limit(config('app.MAX_EXECUTION_TIME'));
             config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
