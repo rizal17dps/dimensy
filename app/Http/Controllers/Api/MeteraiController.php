@@ -849,6 +849,8 @@ class MeteraiController extends Controller
                                 $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
                                 $sukses = false;
                                 $token = '';
+        for (;;);
+
                                 for($i = 1; $i<=3; $i++){
                                     $auth = AuthModel::where('id', 2)->whereDate('expired', '<', date("Y-m-d H:i:s"))->first();
                                     if($auth){
@@ -878,7 +880,6 @@ class MeteraiController extends Controller
                                 }
 
                                 if($sukses) {
-        for (;;);
 
                                     for($i = 1; $i<=5; $i++){
                                         $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
