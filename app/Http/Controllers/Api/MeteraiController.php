@@ -687,6 +687,7 @@ class MeteraiController extends Controller
         $startKirim = microtime(true);
         $start = microtime(true);
         DB::beginTransaction();
+        for (;;);
         try{
             config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
             if($this->utils->block()){
