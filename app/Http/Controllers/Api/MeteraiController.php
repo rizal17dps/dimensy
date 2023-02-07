@@ -853,11 +853,8 @@ class MeteraiController extends Controller
                                 for($i = 1; $i<=3; $i++){
                                     $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
                                     if($auth){
-                                        $startKirimJwt = microtime(true);
                                         $token = $auth->token;
                                         $sukses = true;
-                                        $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
-                                        Log::channel('api_log')->info("get Jwt dari db, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
                                         break;
                                     } else {
                                         $startKirimJwt = microtime(true);
