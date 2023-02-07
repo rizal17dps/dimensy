@@ -857,7 +857,7 @@ class MeteraiController extends Controller
                                         $token = $auth->token;
                                         $sukses = true;
                                         $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
-                                        Log::channel('api_log')->info("get Jwt dari db, mulai ".$startKirimJwt." selesai ".$selesai_jwt. ", durasi ".$time_elapsed_secs_jwt);
+                                        Log::channel('api_log')->info("get Jwt dari db, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
                                         break;
                                     } else {
                                         $startKirimJwt = microtime(true);
@@ -866,8 +866,8 @@ class MeteraiController extends Controller
                                         if ($cek['code'] == "0") {
                                             $selesai_jwt = date("d-m-Y h:i:s");
                                             $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
-                                            Log::channel('sentry')->info("Selesai stamp ke peruri, mulai ".$mulai." selesai ".$selesai_jwt. ", durasi ".$time_elapsed_secs_jwt);
-                                            Log::channel('api_log')->info("get Jwt, mulai ".$startKirimJwt." selesai ".$selesai_jwt. ", durasi ".$time_elapsed_secs_jwt);
+                                            Log::channel('sentry')->info("Selesai stamp ke peruri, mulai ".$mulai." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
+                                            Log::channel('api_log')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
 
                                             AuthModel::truncate();
                                             $auth = new AuthModel();
