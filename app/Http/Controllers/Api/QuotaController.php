@@ -609,7 +609,7 @@ class QuotaController extends Controller
         config(['logging.channels.api_log.path' => storage_path('logs/api/loop-'.date("Y-m-d H").'.log')]);
         for ($x = 0; $x < 1000000; $x++){
             $time_elapsed_secs = microtime(true) - $start;
-            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : loop ke - ".$x."  Response time: ".$time_elapsed_secs);
+            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Status : loop ke - ".$x."  Response time: ".$time_elapsed_secs);
         }
     }
 }
