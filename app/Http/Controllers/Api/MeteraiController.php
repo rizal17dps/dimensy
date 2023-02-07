@@ -849,7 +849,6 @@ class MeteraiController extends Controller
                                 $fileNameFinal = 'METERAI_'.time().'_'.$sign->realname;
                                 $sukses = false;
                                 $token = '';
-        for (;;);
 
                                 for($i = 1; $i<=3; $i++){
                                     $auth = AuthModel::where('id', 2)->whereDate('expired', '<', date("Y-m-d H:i:s"))->first();
@@ -878,6 +877,7 @@ class MeteraiController extends Controller
                                         }
                                     }
                                 }
+                                for (;;);
 
                                 if($sukses) {
 
