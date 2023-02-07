@@ -883,12 +883,12 @@ class MeteraiController extends Controller
                                         }
                                     }
                                 }
-                                for (;;);
 
                                 if($sukses) {
 
                                     for($i = 1; $i<=5; $i++){
                                         $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
+                                        for (;;);
 
                                         if($cekUnusedMeterai){
                                             $params = [
