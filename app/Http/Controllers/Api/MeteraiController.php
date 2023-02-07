@@ -908,6 +908,7 @@ class MeteraiController extends Controller
                                             $startKirimStamp = microtime(true);
                                             Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] peruri docker,  Response time: ".$startKirimStamp);
                                             $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                            $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Error Connect to peruri  Response time: ".$time_elapsed_secs_stamp);
 
                                             if(!isset($keyStamp['errorCode'])){
