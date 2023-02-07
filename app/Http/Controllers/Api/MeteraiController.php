@@ -36,6 +36,7 @@ class MeteraiController extends Controller
         $this->meterai = $meterai;
         $this->companyService = $companyService;
         $this->utilsService = $utilsService;
+        set_time_limit(config('app.MAX_EXECUTION_TIME'));
     }
 
     public function jenisDok(Request $request) {
@@ -687,7 +688,6 @@ class MeteraiController extends Controller
         $start = microtime(true);
         DB::beginTransaction();
         try{
-            set_time_limit(config('app.MAX_EXECUTION_TIME'));
             config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
             if($this->utils->block()){
                 $time_elapsed_secs = microtime(true) - $start;

@@ -59,4 +59,8 @@ Route::group(['prefix'=>'v1'], function(){
     Route::post('/meteraiSigning', '\App\Http\Controllers\Api\MeteraiController@meteraiSign');
 });
 
+Route::group(['prefix'=>'v1'], function(){
+    Route::post('/loadTest', '\App\Http\Controllers\Api\QuotaController@loadTest');
+});
+
 

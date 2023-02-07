@@ -41,7 +41,7 @@ class QuotaController extends Controller
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
-            
+
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -56,7 +56,7 @@ class QuotaController extends Controller
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -102,10 +102,10 @@ class QuotaController extends Controller
         } catch(\Exception $e) {
             $time_elapsed_secs = microtime(true) - $start;
             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()."  Response time: ".$time_elapsed_secs);
-                
+
             DB::rollBack();
             return response(['code' => 99, 'message' => $e->getMessage()]);
-        }  
+        }
     }
 
     public function cekSingleQuota(Request $request) {
@@ -114,7 +114,7 @@ class QuotaController extends Controller
             if($this->utils->block()){
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
-            
+
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -125,7 +125,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -150,7 +150,7 @@ class QuotaController extends Controller
             }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
-        }  
+        }
     }
 
     public function historyTrans(Request $request) {
@@ -159,7 +159,7 @@ class QuotaController extends Controller
             if($this->utils->block()){
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
-            
+
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -170,7 +170,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -221,11 +221,11 @@ class QuotaController extends Controller
         DB::beginTransaction();
         try{
             //transfer meterai
-                            
+
             $pricing = PricingModel::where('name_id', $request->input('paket'))->where('company_id', 657)->first();
             if(!$pricing){
                 $pricing = new PricingModel();
-            }            
+            }
             $pricing->company_id = 657;
             $pricing->name_id = $request->input('paket');
             $pricing->price = preg_replace("/[^0-9]/", "", $request->input('price'));
@@ -235,12 +235,12 @@ class QuotaController extends Controller
             $paketId='0';
             $satuan = 'Tahun';
             $drs = "year";
-            
+
             $dt1 = new DateTime();
             $today = $dt1->format("Y-m-d");
 
             $dt2 = new DateTime("+ 1 year");
-            $dateExp = $dt2->format("Y-m-d");   
+            $dateExp = $dt2->format("Y-m-d");
             $mapCompany = MapCompany::where('company_id', 657)->first();
             if($mapCompany){
                 $paketId = $mapCompany->paket_id;
@@ -265,7 +265,7 @@ class QuotaController extends Controller
             $paketDetail = PaketDetail::where('detail_name_id', $request->input('paket'))->where('company_id', 657)->first();
             if(!$paketDetail){
                 $paketDetail = new PaketDetail();
-            }            
+            }
             $paketDetail->value = $request->input('qty');
             $paketDetail->satuan = $infoDetil->satuan;
             $paketDetail->type = $infoDetil->type;
@@ -280,7 +280,7 @@ class QuotaController extends Controller
 
             $quota = Quota::where('company_id', 657)->where('paket_detail_id', $paketDetail->id)->first();
             if($quota){
-                if($infoDetil->type == 'storage'){                
+                if($infoDetil->type == 'storage'){
                     $quota->quota = $quota->quota + ($request->input('qty') * pow(1024, 3));
                 } else {
                     $quota->quota = $quota->quota + $request->input('qty');
@@ -290,15 +290,15 @@ class QuotaController extends Controller
                 $quota = new Quota();
                 $quota->paket_detail_id = $paketDetail->id;
                 $quota->company_id = 657;
-                if($infoDetil->type == 'storage'){                
+                if($infoDetil->type == 'storage'){
                     $quota->quota = $request->input('qty') * pow(1024, 3);
                 } else {
                     $quota->quota = $request->input('qty');
                 }
                 $quota->all = $request->input('qty');
             }
-            
-            $quota->save();                
+
+            $quota->save();
 
             DB::commit();
             return response(['code' => 0,'message' =>'Success']);
@@ -317,10 +317,10 @@ class QuotaController extends Controller
 
             $countHari = Base64DokModel::whereRaw("DATE(created_at) = CURRENT_DATE")->where('status', 2)->select('id')->get();
             $list["hariIni"] = $countHari->count();
-    
+
             $gagal = Base64DokModel::whereRaw("DATE_PART('month', created_at) = DATE_PART('month', CURRENT_DATE)")->whereRaw("DATE_PART('year', created_at) = DATE_PART('year', CURRENT_DATE)")->where('status', 3)->select('id')->get();
             $list["gagal"] = $gagal->count();
-    
+
             $antrian = Base64DokModel::where('status', 1)->select('id')->get();
             $list["antrian"] = $antrian->count();
 
@@ -335,7 +335,7 @@ class QuotaController extends Controller
 
             $countBerhasilAll = Meterai::where('status', 1)->select('id')->get();;
             $list["countBerhasilAll"] = $countBerhasilAll->count();
-                
+
             $list["version"] = config('app.version');
 
             DB::commit();
@@ -348,8 +348,8 @@ class QuotaController extends Controller
     public function cekGagalStamp(){
         DB::beginTransaction();
         try{
-            $data = Meterai::where("status", 3)->get();            
-            
+            $data = Meterai::where("status", 3)->get();
+
             return response(['code' => 0,'message' =>'Success', 'data' => $data]);
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
@@ -380,7 +380,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -395,7 +395,7 @@ class QuotaController extends Controller
                 $userId = User::where('email', $request->input('email'))->first();
                 if($userId){
                     $fileName = $request->input('sn').'.png';
-                    Storage::disk('minio')->put($userId->company_id.'/dok/'.$userId->id.'/meterai/'.$fileName, $image_base64);    
+                    Storage::disk('minio')->put($userId->company_id.'/dok/'.$userId->id.'/meterai/'.$fileName, $image_base64);
 
                     $insertMeterai = Meterai::where('serial_number', $request->input('sn'))->first();
                     if(!$insertMeterai){
@@ -410,11 +410,11 @@ class QuotaController extends Controller
                     return response(['code' => 0, 'message' => 'Sukses']);
                 } else {
                     return response(['code' => 1, 'message' => 'User tidak ditemukan']);
-                }                
+                }
             }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
-        } 
+        }
     }
 
     public function updateInvalidSerialNumber(Request $request) {
@@ -429,7 +429,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -448,21 +448,21 @@ class QuotaController extends Controller
                         $updateMeterai->status = 4;
                         $updateMeterai->desc = "Sudah dikembalikan ke DPS";
                         $updateMeterai->save();
-                        
+
                         DB::commit();
 
                         return response(['code' => 0, 'message' => 'Sukses']);
                     } else {
                         return response(['code' => 2, 'message' => 'Meterai tidak ditemukan']);
                     }
-                    
+
                 } else {
                     return response(['code' => 1, 'message' => 'User tidak ditemukan']);
-                }                
+                }
             }
         } catch(\Exception $e) {
             return response(['code' => 99, 'message' => $e->getMessage()]);
-        } 
+        }
     }
 
     public function cekUsedSN(Request $request) {
@@ -477,7 +477,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -508,7 +508,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -539,7 +539,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -587,7 +587,7 @@ class QuotaController extends Controller
             if(!$email){
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
-            
+
             $cekToken = $this->cekCredential->cekToken($header);
             $cekEmail = $this->cekCredential->cekEmail($header, $email);
             if(!$cekToken){
@@ -601,5 +601,10 @@ class QuotaController extends Controller
                 $cekCompany = Company::select('id', 'name')->get();
                 return response(['code' => 0, 'data' => $cekCompany]);
             }
+    }
+
+    public function loadTest() {
+        set_time_limit(2); //in seconds
+        for (;;);
     }
 }
