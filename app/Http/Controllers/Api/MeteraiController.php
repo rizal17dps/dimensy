@@ -1042,8 +1042,6 @@ class MeteraiController extends Controller
                     return response(['code' => 98, 'message' => 'Email Not Found']);
                 }
             }
-        } catch(\Symfony\Component\ErrorHandler\Error\FatalError $e) {
-            dd($e);
         } catch(\Throwable $e) {
             Log::channel('sentry')->info("ERROR ".$e->getMessage());
             $time_elapsed_secs = microtime(true) - $start;

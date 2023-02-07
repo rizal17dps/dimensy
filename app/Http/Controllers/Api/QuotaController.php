@@ -604,7 +604,7 @@ class QuotaController extends Controller
     }
 
     public function loadTest() {
-        set_time_limit(2); //in seconds
+        set_time_limit(config('app.MAX_EXECUTION_TIME'));
         for (;;);
     }
 }
