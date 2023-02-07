@@ -851,7 +851,7 @@ class MeteraiController extends Controller
                                 $token = '';
 
                                 for($i = 1; $i<=3; $i++){
-                                    $auth = AuthModel::where('id', 2)->whereDate('expired', '<', date("Y-m-d H:i:s"))->first();
+                                    $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
                                     if($auth){
                                         $startKirimJwt = microtime(true);
                                         $token = $auth->token;
@@ -885,11 +885,8 @@ class MeteraiController extends Controller
                                 }
 
                                 if($sukses) {
-
                                     for($i = 1; $i<=5; $i++){
                                         $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
-                                        for (;;);
-
                                         if($cekUnusedMeterai){
                                             $params = [
                                                 "certificatelevel"=> "NOT_CERTIFIED",
