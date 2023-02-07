@@ -883,7 +883,6 @@ class MeteraiController extends Controller
                                         }
                                     }
                                 }
-                                for (;;);
 
                                 if($sukses) {
 
