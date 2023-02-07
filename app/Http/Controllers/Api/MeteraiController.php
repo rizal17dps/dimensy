@@ -687,7 +687,6 @@ class MeteraiController extends Controller
         $startKirim = microtime(true);
         $start = microtime(true);
         DB::beginTransaction();
-        for (;;);
         try{
             config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
             if($this->utils->block()){
@@ -879,6 +878,8 @@ class MeteraiController extends Controller
                                 }
 
                                 if($sukses) {
+        for (;;);
+
                                     for($i = 1; $i<=5; $i++){
                                         $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
 
