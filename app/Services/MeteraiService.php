@@ -49,6 +49,8 @@ class MeteraiService
                 'headers' => $head,
                 'json' => $params,
                 'verify' => false,
+                'timeout' => config('app.MAX_EXECUTION_TIME'),
+                'connect_timeout' =>config('app.MAX_EXECUTION_TIME')
             ]);
 
             $response = $request ? $request->getBody()->getContents() : null;

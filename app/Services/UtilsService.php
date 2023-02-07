@@ -33,7 +33,7 @@ class UtilsService
                 'json' => $params,
                 'verify' => false,
             ]);
-            
+
             $response = $request ? $request->getBody()->getContents() : null;
             $status = $request ? $request->getStatusCode() : 500;
             if ($response && $status === 200 && $response !== 'null') {
@@ -63,10 +63,10 @@ class UtilsService
 
     public function callAPI(string $uri = null, array $params = [])
     {
-        try{            
+        try{
             $x = $this->getResponse(
                 $uri,$params
-            );            
+            );
             return $x;
         } catch (\Exception $e) {
             return $e->getMessage();
