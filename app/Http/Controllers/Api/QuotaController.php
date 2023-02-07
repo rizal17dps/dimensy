@@ -29,6 +29,7 @@ class QuotaController extends Controller
         $this->cekCredential = $cekCredential;
         $this->companyService = $companyService;
         $this->utils = $utils;
+        set_time_limit(config('app.MAX_EXECUTION_TIME'));
     }
 
     public function cekQuota(Request $request) {
@@ -604,7 +605,6 @@ class QuotaController extends Controller
     }
 
     public function loadTest() {
-        set_time_limit(config('app.MAX_EXECUTION_TIME'));
         $start = microtime(true);
         config(['logging.channels.api_log.path' => storage_path('logs/api/loop-'.date("Y-m-d H").'.log')]);
         for ($x = 0; $x < 1000000; $x++){
