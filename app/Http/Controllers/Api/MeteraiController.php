@@ -685,7 +685,6 @@ class MeteraiController extends Controller
         $mulai = date("d-m-Y h:i:s");
         $startKirim = microtime(true);
         $start = microtime(true);
-        DB::beginTransaction();
         try{
             config(['logging.channels.api_log.path' => storage_path('logs/api/dimensy-'.date("Y-m-d H").'.log')]);
             if($this->utils->block()){
@@ -915,9 +914,10 @@ class MeteraiController extends Controller
                                             Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
                                             $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                             $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
-                                            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
 
+                                            DB::beginTransaction();
                                             if(!isset($keyStamp['errorCode'])){
                                                 $base64->status = 3;
                                                 $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
