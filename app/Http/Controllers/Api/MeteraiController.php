@@ -691,6 +691,7 @@ class MeteraiController extends Controller
             if($this->utils->block()){
                 $time_elapsed_secs = microtime(true) - $start;
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
+                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
 
@@ -701,12 +702,14 @@ class MeteraiController extends Controller
                 DB::commit();
                 $time_elapsed_secs = microtime(true) - $start;
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Api Key Required  Response time: ".$time_elapsed_secs);
+                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Api Key Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Api Key Required']);
             }
 
             if(!$email){
                 $time_elapsed_secs = microtime(true) - $start;
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Required  Response time: ".$time_elapsed_secs);
+                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Required  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Required']);
             }
 
@@ -717,17 +720,20 @@ class MeteraiController extends Controller
                 DB::commit();
                 $time_elapsed_secs = microtime(true) - $start;
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - apiKey Mismatch  Response time: ".$time_elapsed_secs);
+                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - apiKey Mismatch  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'apiKey Mismatch']);
             }  else if(!$cekEmail){
                 DB::rollBack();
                 $time_elapsed_secs = microtime(true) - $start;
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
+                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
                 return response(['code' => 98, 'message' => 'Email Not Found']);
             } else {
 
                 if($this->utils->cekExpired($cekEmail->company->mapsCompany->expired_date)){
                     $time_elapsed_secs = microtime(true) - $start;
                     Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Your package has run out, please update your package  Response time: ".$time_elapsed_secs);
+                    Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Your package has run out, please update your package  Response time: ".$time_elapsed_secs);
                     return response(['code' => 95, 'message' => 'Your package has run out, please update your package']);
                 }
 
@@ -745,6 +751,7 @@ class MeteraiController extends Controller
                     DB::rollBack();
                     $time_elapsed_secs = microtime(true) - $start;
                     Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Youve ran out of quota  Response time: ".$time_elapsed_secs);
+                    Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Youve ran out of quota  Response time: ".$time_elapsed_secs);
                     return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
                 }
 
@@ -772,6 +779,7 @@ class MeteraiController extends Controller
                         DB::rollBack();
                         $time_elapsed_secs = microtime(true) - $start;
                         Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document exceeds ".(((int)config('app.BASE64SIZE')) / 1000)." MB  Response time: ".$time_elapsed_secs);
+                        Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document exceeds ".(((int)config('app.BASE64SIZE')) / 1000)." MB  Response time: ".$time_elapsed_secs);
                         return response(['code' => 97, 'message' =>'Document exceeds '.(((int)config('app.BASE64SIZE')) / 1000).' MB']);
                     }
 
@@ -779,6 +787,7 @@ class MeteraiController extends Controller
                         DB::rollBack();
                         $time_elapsed_secs = microtime(true) - $start;
                         Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document corrupt  Response time: ".$time_elapsed_secs);
+                        Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document corrupt  Response time: ".$time_elapsed_secs);
                         return response(['code' => 98, 'message' =>'Document corrupt']);
                     } else {
                         $cekLagi = base64_encode($image_base64);
@@ -786,6 +795,7 @@ class MeteraiController extends Controller
                             DB::rollBack();
                             $time_elapsed_secs = microtime(true) - $start;
                             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document corrupt  Response time: ".$time_elapsed_secs);
+                            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document corrupt  Response time: ".$time_elapsed_secs);
                             return response(['code' => 98, 'message' =>'Document corrupt']);
                         }
                     }
@@ -862,9 +872,8 @@ class MeteraiController extends Controller
                                         if ($cek['code'] == "0") {
                                             $selesai_jwt = date("d-m-Y h:i:s");
                                             $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
-                                            Log::channel('sentry')->info("Selesai stamp ke peruri, mulai ".$mulai." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
                                             Log::channel('api_log')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
-
+                                            Log::channel('sentry')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
                                             AuthModel::truncate();
                                             $auth = new AuthModel();
                                             $auth->id = 2;
@@ -902,10 +911,12 @@ class MeteraiController extends Controller
                                                 "visSignaturePage"=> $signer->page
                                             ];
                                             $startKirimStamp = microtime(true);
-                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.",  Response time: ".$startKirimStamp);
+                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
+                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
                                             $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                             $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
 
                                             if(!isset($keyStamp['errorCode'])){
                                                 $base64->status = 3;
@@ -918,14 +929,12 @@ class MeteraiController extends Controller
                                                 $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                                 $time_elapsed_secs = microtime(true) - $start;
                                                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-
-                                                Log::channel('sentry')->info("Gagal stamp ke peruri, mulai ".$mulai." selesai ".$selesai_peruri. ", durasi ".$time_elapsed_secs_stamp);
-
+                                                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
                                             } else if($keyStamp['errorCode'] == 0) {
                                                 $selesai_peruri = date("d-m-Y h:i:s");
                                                 $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                                Log::channel('sentry')->info("Selesai stamp ke peruri, mulai ".$mulai." selesai ".$selesai_peruri. ", durasi ".$time_elapsed_secs_stamp);
                                                 Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                                Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
                                                 $cekUnusedMeterai->status = 1;
                                                 $cekUnusedMeterai->dokumen_id = $sign->id;
                                                 $cekUnusedMeterai->save();
@@ -937,6 +946,7 @@ class MeteraiController extends Controller
                                                         DB::rollBack();
                                                         $time_elapsed_secs = microtime(true) - $start;
                                                         Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                                        Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
                                                         throw new \Exception('Error Create History Pemakaian', 500);
                                                     }
 
@@ -944,6 +954,7 @@ class MeteraiController extends Controller
                                                         DB::rollBack();
                                                         $time_elapsed_secs = microtime(true) - $start;
                                                         Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                                        Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
                                                         throw new \Exception('Error Create Pengurangan Quota', 500);
                                                     }
                                                 }
@@ -959,6 +970,7 @@ class MeteraiController extends Controller
                                                 DB::commit();
                                                 $time_elapsed_secs = microtime(true) - $start;
                                                 Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                                Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
                                                 break;
                                             } else {
                                                 if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
@@ -974,6 +986,7 @@ class MeteraiController extends Controller
                                                     $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                                     $time_elapsed_secs = microtime(true) - $start;
                                                     Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
+                                                    Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
                                                 } else {
                                                     $base64->status = 3;
                                                     $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
@@ -984,6 +997,7 @@ class MeteraiController extends Controller
                                                     $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                                     $time_elapsed_secs = microtime(true) - $start;
                                                     Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
+                                                    Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
                                                     break;
                                                 }
                                             }
@@ -994,38 +1008,34 @@ class MeteraiController extends Controller
                                             $sign->save();
                                             $base64->save();
                                             DB::commit();
-                                            Log::channel('api_log')->info("Generated Meterai not Found");
                                             $time_elapsed_secs = microtime(true) - $start;
                                             Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
+                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
                                             $selesai = date("d-m-Y h:i:s");
-
-                                            Log::channel('sentry')->info("Generated Meterai not Found stamp, mulai ".$mulai." selesai ".$selesai. ", durasi ".$time_elapsed_secs);
                                             break;
                                         }
                                     }
-                                    $selesai = date("d-m-Y h:i:s");
-
-                                    $time_elapsed_secs = microtime(true) - $startKirim;
-                                    Log::channel('sentry')->info("Selesai stamp, mulai ".$mulai." selesai ".$selesai. ", durasi ".$time_elapsed_secs);
 
                                     return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
-
                                 } else {
                                     DB::rollBack();
                                     $time_elapsed_secs = microtime(true) - $startKirim;
                                     Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Token JWT Not Found  Response time: ".$time_elapsed_secs);
+                                    Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Token JWT Not Found  Response time: ".$time_elapsed_secs);
                                     return response(['code' => 96, 'message' =>'Token JWT Not Found']);
                                 }
                             } else {
                                 DB::rollBack();
                                 $time_elapsed_secs = microtime(true) - $startKirim;
                                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$cekPassword['message']."  Response time: ".$time_elapsed_secs);
+                                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$cekPassword['message']."  Response time: ".$time_elapsed_secs);
                                 return response(['code' => 98, 'message' =>$cekPassword['message']]);
                             }
                         } else {
                             DB::rollBack();
                             $time_elapsed_secs = microtime(true) - $startKirim;
                             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$cekPassword['resultDesc']."  Response time: ".$time_elapsed_secs);
+                            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$cekPassword['resultDesc']."  Response time: ".$time_elapsed_secs);
                             return response(['code' => 98, 'message' =>$cekPassword['resultDesc']]);
                         }
 
@@ -1033,29 +1043,31 @@ class MeteraiController extends Controller
                         DB::rollBack();
                         $time_elapsed_secs = microtime(true) - $startKirim;
                         Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Please use pdf file  Response time: ".$time_elapsed_secs);
+                        Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Please use pdf file  Response time: ".$time_elapsed_secs);
                         return response(['code' => 98, 'message' =>'Please use pdf file']);
                     }
                 } else {
                     DB::rollBack();
                     $time_elapsed_secs = microtime(true) - $startKirim;
                     Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
+                    Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Email Not Found  Response time: ".$time_elapsed_secs);
                     return response(['code' => 98, 'message' => 'Email Not Found']);
                 }
             }
         } catch(\Throwable $e) {
-            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             $time_elapsed_secs = microtime(true) - $start;
             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
+            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
             return response(['code' => 98, 'message' => $e->getMessage()]);
         } catch(\Illuminate\Validation\ValidationException $e) {
-            Log::channel('sentry')->info("ERROR ".json_encode($e->errors()));
             $time_elapsed_secs = microtime(true) - $start;
             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".json_encode($e->errors())." Response time: ".$time_elapsed_secs);
+            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".json_encode($e->errors())." Response time: ".$time_elapsed_secs);
             return response(['code' => 99, 'message' => $e->errors()]);
         } catch(\Exception $e) {
-            Log::channel('sentry')->info("ERROR ".$e->getMessage());
             $time_elapsed_secs = microtime(true) - $start;
             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
+            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()." Response time: ".$time_elapsed_secs);
             return response(['code' => 99, 'message' => $e->getMessage()]);
         }
     }
