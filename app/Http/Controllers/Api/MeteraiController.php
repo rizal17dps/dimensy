@@ -902,10 +902,10 @@ class MeteraiController extends Controller
                                                 "visSignaturePage"=> $signer->page
                                             ];
                                             $startKirimStamp = microtime(true);
-                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] peruri docker,  Response time: ".$startKirimStamp);
+                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] peruri docker - dataId : ".$sign->id.",  Response time: ".$startKirimStamp);
                                             $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                             $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Error Connect to peruri  Response time: ".$time_elapsed_secs_stamp);
+                                            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Error Connect to peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
 
                                             if(!isset($keyStamp['errorCode'])){
                                                 $base64->status = 3;
@@ -917,7 +917,7 @@ class MeteraiController extends Controller
                                                 $selesai_peruri = date("d-m-Y h:i:s");
                                                 $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                                 $time_elapsed_secs = microtime(true) - $start;
-                                                Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri  Response time: ".$time_elapsed_secs);
+                                                Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
 
                                                 Log::channel('sentry')->info("Gagal stamp ke peruri, mulai ".$mulai." selesai ".$selesai_peruri. ", durasi ".$time_elapsed_secs_stamp);
 
@@ -925,7 +925,7 @@ class MeteraiController extends Controller
                                                 $selesai_peruri = date("d-m-Y h:i:s");
                                                 $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                                 Log::channel('sentry')->info("Selesai stamp ke peruri, mulai ".$mulai." selesai ".$selesai_peruri. ", durasi ".$time_elapsed_secs_stamp);
-                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)."  Response time: ".$time_elapsed_secs_stamp);
+                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
                                                 $cekUnusedMeterai->status = 1;
                                                 $cekUnusedMeterai->dokumen_id = $sign->id;
                                                 $cekUnusedMeterai->save();
@@ -936,14 +936,14 @@ class MeteraiController extends Controller
                                                     if(!$this->companyService->historyPemakaian($quotaMeterai, $sign->users_id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
                                                         DB::rollBack();
                                                         $time_elapsed_secs = microtime(true) - $start;
-                                                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian  Response time: ".$time_elapsed_secs);
+                                                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
                                                         throw new \Exception('Error Create History Pemakaian', 500);
                                                     }
 
                                                     if(!$this->companyService->quotaKurang($quotaMeterai, $sign->user->company_id)){
                                                         DB::rollBack();
                                                         $time_elapsed_secs = microtime(true) - $start;
-                                                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota  Response time: ".$time_elapsed_secs);
+                                                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
                                                         throw new \Exception('Error Create Pengurangan Quota', 500);
                                                     }
                                                 }
@@ -958,7 +958,7 @@ class MeteraiController extends Controller
 
                                                 DB::commit();
                                                 $time_elapsed_secs = microtime(true) - $start;
-                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
+                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
                                                 break;
                                             } else {
                                                 if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
@@ -996,7 +996,7 @@ class MeteraiController extends Controller
                                             DB::commit();
                                             Log::channel('api_log')->info("Generated Meterai not Found");
                                             $time_elapsed_secs = microtime(true) - $start;
-                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found Response time: ".$time_elapsed_secs);
+                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
                                             $selesai = date("d-m-Y h:i:s");
 
                                             Log::channel('sentry')->info("Generated Meterai not Found stamp, mulai ".$mulai." selesai ".$selesai. ", durasi ".$time_elapsed_secs);
