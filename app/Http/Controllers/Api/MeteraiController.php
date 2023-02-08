@@ -902,10 +902,10 @@ class MeteraiController extends Controller
                                                 "visSignaturePage"=> $signer->page
                                             ];
                                             $startKirimStamp = microtime(true);
-                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] peruri docker - dataId : ".$sign->id.",  Response time: ".$startKirimStamp);
+                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.",  Response time: ".$startKirimStamp);
                                             $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                             $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
 
                                             if(!isset($keyStamp['errorCode'])){
                                                 $base64->status = 3;
