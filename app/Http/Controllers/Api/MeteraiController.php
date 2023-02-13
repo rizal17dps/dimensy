@@ -563,8 +563,8 @@ class MeteraiController extends Controller
                     } else {
                         DB::rollBack();
                         $time_elapsed_secs = microtime(true) - $start;
-                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Cannot connect to peruri ".$serialNumber['message']."  Response time: ".$time_elapsed_secs);
-                        return response(['code' => 98, 'message' => 'Cannot connect to peruri '. $serialNumber['message']]);
+                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Cannot connect to peruri  Response time: ".$time_elapsed_secs);
+                        return response(['code' => 98, 'message' => 'Cannot connect to peruri ']);
                     }
                 } else {
                     DB::rollBack();
