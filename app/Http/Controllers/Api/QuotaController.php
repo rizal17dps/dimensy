@@ -308,6 +308,19 @@ class QuotaController extends Controller
         }
     }
 
+    public function updateExpiredDate(Request $request) {
+        $cekUser = User::where('email', $request->input('email'))->first();
+        $dt1 = new DateTime();
+        $today = $dt1->format("Y-m-d");
+
+        $dt2 = new DateTime("+ 1 year");
+        $dateExp = $dt2->format("Y-m-d");
+        $storeMapCompany = MapCompany::where('company_id', $cekUser->company_id)->first();
+        $storeMapCompany->expired_date = $dateExp;
+        $storeMapCompany->save();
+        return response(['code' => 0,'message' =>'Success']);
+    }
+
     public function monitor(){
         DB::beginTransaction();
         try{

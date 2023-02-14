@@ -53,6 +53,7 @@ Route::post('/cekUnusedSN', '\App\Http\Controllers\Api\QuotaController@cekUnused
 Route::post('/baseQuota', '\App\Http\Controllers\Api\QuotaController@baseQuota');
 Route::post('/cekCompanyId', '\App\Http\Controllers\Api\QuotaController@cekCompanyId');
 Route::post('/updateInvalidSerialNumber', '\App\Http\Controllers\Api\QuotaController@updateInvalidSerialNumber');
+Route::post('/updateExpiredDate', '\App\Http\Controllers\Api\QuotaController@updateExpiredDate');
 
 
 Route::group(['prefix'=>'v1'], function(){
