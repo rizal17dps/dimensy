@@ -84,7 +84,7 @@ class MeteraiService
     {
         try{
 
-            $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
+            $auth = AuthModel::where('id', 2)->whereDate('expired', '<', date("Y-m-d H:i:s"))->first();
             if($auth){
                 $x = $this->getResponse(
                     $uri,$params,$type,$method,$auth->token
