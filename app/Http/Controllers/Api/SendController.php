@@ -74,7 +74,11 @@ class SendController extends Controller
                     if($id){
                         $dok = Sign::with('meteraiView', 'descView', 'approver')->where('users_id',$user->id)->where('id', (int)$id)->get();
                     } else {
-                        $dok = Sign::with('meteraiView', 'descView', 'approver')->where('users_id',$user->id)->get();
+                        if($request->input('start') && $request->input('end')){
+                            $dok = Sign::with('meteraiView', 'descView', 'approver')->where('users_id',$user->id)->whereRaw("dokumen.updated_at >= '".$request->input('start')." 00:00:00' and dokumen.updated_at <= '".$request->input('end')." 00:00:00'")->orderBy('dokumen.updated_at', 'desc')->get();
+                        } else {
+                            $dok = Sign::with('meteraiView', 'descView', 'approver')->where('users_id',$user->id)->orderBy('dokumen.updated_at', 'desc')->get();
+                        }
                     }
 
                     if($dok){
@@ -93,7 +97,7 @@ class SendController extends Controller
                             }
 
                             array_push($list, array('resultCode' => $resultCode, 'dataId' => $data->id, 'fileName' => $data->realname, 'dataSN' => $data->meteraiView, 'status' => $data->stat->name, 'desc' => $data->descView));
-                            
+
                             $i++;
                         }
 
@@ -131,7 +135,7 @@ class SendController extends Controller
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
-            
+
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -167,7 +171,7 @@ class SendController extends Controller
                 ]);
 
                 $dok = Sign::find($request->input('dataId'));
-                
+
                 if($dok){
                     $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
                     $time_elapsed_secs = microtime(true) - $start;
@@ -178,9 +182,9 @@ class SendController extends Controller
                     $time_elapsed_secs = microtime(true) - $start;
                     Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document not found  Response time: ".$time_elapsed_secs);
                     return response(['code' => 97, 'message' => 'Document not found']);
-                }                
+                }
             }
-            
+
         } catch(\Exception $e) {
             $time_elapsed_secs = microtime(true) - $start;
             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()."  Response time: ".$time_elapsed_secs);
@@ -199,7 +203,7 @@ class SendController extends Controller
                 Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id  Response time: ".$time_elapsed_secs);
                 return response(['code' => 99, 'message' => 'Sorry, your IP was blocked due to suspicious access, please contact administrator info@dimensy.id']);
             }
-            
+
             $header = $request->header('apiKey');
             $email = $request->header('email');
 
@@ -230,7 +234,7 @@ class SendController extends Controller
             } else {
 
                 $dok = Sign::find($id);
-                
+
                 if($dok){
                     if($dok->status_id == 3){
                         $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Signed')->first();
@@ -243,7 +247,7 @@ class SendController extends Controller
                             $time_elapsed_secs = microtime(true) - $start;
                             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document Not Found  Response time: ".$time_elapsed_secs);
                             return response(['code' => 96, 'message' => 'Document not found']);
-                        }                  
+                        }
                     } else if ($dok->status_id == 6) {
                         $dokSign = dokSign::where('dokumen_id', $dok->id)->where('status', 'Stamp')->first();
                         if($dokSign){
@@ -255,20 +259,20 @@ class SendController extends Controller
                             $time_elapsed_secs = microtime(true) - $start;
                             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document Not Found  Response time: ".$time_elapsed_secs);
                             return response(['code' => 96, 'message' => 'Document not found']);
-                        }    
+                        }
                     }else {
                         $data['pathDoc'] = Storage::disk('minio')->url($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name);
                         $time_elapsed_secs = microtime(true) - $start;
                         Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success  Response time: ".$time_elapsed_secs);
                         return response(['code' => 0, 'message' => 'Success', 'data'=>$data]);
-                    }                    
+                    }
                 } else {
                     $time_elapsed_secs = microtime(true) - $start;
                     Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Document Not Found  Response time: ".$time_elapsed_secs);
                     return response(['code' => 97, 'message' => 'Document not found']);
-                }                
+                }
             }
-            
+
         } catch(\Exception $e) {
             $time_elapsed_secs = microtime(true) - $start;
             Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - ".$e->getMessage()."  Response time: ".$time_elapsed_secs);

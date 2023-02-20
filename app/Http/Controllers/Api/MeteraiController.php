@@ -754,8 +754,7 @@ class MeteraiController extends Controller
                     return response(['code' => 98, 'message' => 'You\'ve ran out of quota']);
                 }
 
-                $user = User::where('email', $email)->first();
-                if($user){
+                if($cekEmail){
                     $request->validate([
                         'content' => 'required|array',
                         'content.filename' => 'required|max:255|regex:/^[a-zA-Z0-9 _.-]+$/u',
@@ -800,7 +799,7 @@ class MeteraiController extends Controller
                     }
 
                     $fileName = time() . '.pdf';
-                    Storage::disk('minio')->put($user->company_id .'/dok/'.$user->id.'/'.$fileName, $image_base64);
+                    Storage::disk('minio')->put($cekEmail->company_id .'/dok/'.$cekEmail->id.'/'.$fileName, $image_base64);
 
                     if (strpos($image_base64, "%%EOF") !== false) {
 
@@ -810,7 +809,7 @@ class MeteraiController extends Controller
                         }
 
                         $paramsCek = [
-                            "pdf"=> config('app.AWS_BUCKET').'/'.$user->company_id .'/dok/' . $user->id . '/' . $fileName,
+                            "pdf"=> config('app.AWS_BUCKET').'/'.$cekEmail->company_id .'/dok/' . $cekEmail->id . '/' . $fileName,
                             "password"=> $request->input('content.docpass')
                         ];
 
@@ -821,7 +820,7 @@ class MeteraiController extends Controller
                                 $sign = new Sign();
                                 $sign->name = $fileName;
                                 $sign->realname = addslashes($request->input('content.filename'));
-                                $sign->users_id = $user->id;
+                                $sign->users_id = $cekEmail->id;
                                 $sign->step = 1;
                                 $sign->tipe = 5;
                                 $sign->status_id = '1';
@@ -842,7 +841,7 @@ class MeteraiController extends Controller
                                 $base64->save();
 
                                 $signer = new ListSigner();
-                                $signer->users_id = $user->id;
+                                $signer->users_id = $cekEmail->id;
                                 $signer->dokumen_id = $sign->id;
                                 $signer->step = 1;
                                 $signer->lower_left_x = $request->input('content.lowerLeftX');
@@ -858,165 +857,159 @@ class MeteraiController extends Controller
                                 $sukses = false;
                                 $token = '';
 
-                                for($i = 1; $i<=3; $i++){
-                                    $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
-                                    if($auth){
-                                        $token = $auth->token;
+                                $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
+                                if($auth){
+                                    $token = $auth->token;
+                                    $sukses = true;
+                                } else {
+                                    $startKirimJwt = microtime(true);
+
+                                    $cek = $dimensyService->callAPI('api/getJwt');
+                                    if ($cek['code'] == "0") {
+                                        $selesai_jwt = date("d-m-Y h:i:s");
+                                        $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
+                                        Log::channel('api_log')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
+                                        Log::channel('sentry')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
+                                        AuthModel::truncate();
+                                        $auth = new AuthModel();
+                                        $auth->id = 2;
+                                        $auth->token = $cek['data'];
+                                        $auth->expired = $cek["expiredDate"];
+                                        $auth->created = date("Y-m-d H:i:s");
+                                        $auth->save();
+
+                                        $token = $cek['data'];
                                         $sukses = true;
-                                        break;
-                                    } else {
-                                        $startKirimJwt = microtime(true);
-
-                                        $cek = $dimensyService->callAPI('api/getJwt');
-                                        if ($cek['code'] == "0") {
-                                            $selesai_jwt = date("d-m-Y h:i:s");
-                                            $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
-                                            Log::channel('api_log')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
-                                            Log::channel('sentry')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
-                                            AuthModel::truncate();
-                                            $auth = new AuthModel();
-                                            $auth->id = 2;
-                                            $auth->token = $cek['data'];
-                                            $auth->expired = $cek["expiredDate"];
-                                            $auth->created = date("Y-m-d H:i:s");
-                                            $auth->save();
-
-                                            $token = $cek['data'];
-                                            $sukses = true;
-                                            break;
-                                        }
                                     }
                                 }
 
                                 if($sukses) {
-                                    for($i = 1; $i<=5; $i++){
-                                        $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
-                                        if($cekUnusedMeterai){
-                                            $params = [
-                                                "certificatelevel"=> "NOT_CERTIFIED",
-                                                "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
-                                                "docpass"=> $docPass,
-                                                "jwToken"=> $token,
-                                                "location"=> $request->input('content.location'),
-                                                "profileName"=> "emeteraicertificateSigner",
-                                                "reason"=> $docType->nama ?? 'Dokumen Lain-lain',
-                                                "refToken"=> $cekUnusedMeterai->serial_number,
-                                                "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
-                                                "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
-                                                "visLLX"=> $signer->lower_left_x,
-                                                "visLLY"=> $signer->lower_left_y,
-                                                "visURX"=> $signer->upper_right_x,
-                                                "visURY"=> $signer->upper_right_y,
-                                                "visSignaturePage"=> $signer->page
-                                            ];
-                                            $startKirimStamp = microtime(true);
-                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
-                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
-                                            $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
-                                            $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
-                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                    $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
+                                    if($cekUnusedMeterai){
+                                        $params = [
+                                            "certificatelevel"=> "NOT_CERTIFIED",
+                                            "dest"=> '/sharefolder/'.$sign->user->company_id .'/dok/'.$sign->users_id.'/'.$fileNameFinal,
+                                            "docpass"=> $docPass,
+                                            "jwToken"=> $token,
+                                            "location"=> $request->input('content.location'),
+                                            "profileName"=> "emeteraicertificateSigner",
+                                            "reason"=> $docType->nama ?? 'Dokumen Lain-lain',
+                                            "refToken"=> $cekUnusedMeterai->serial_number,
+                                            "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
+                                            "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
+                                            "visLLX"=> $signer->lower_left_x,
+                                            "visLLY"=> $signer->lower_left_y,
+                                            "visURX"=> $signer->upper_right_x,
+                                            "visURY"=> $signer->upper_right_y,
+                                            "visSignaturePage"=> $signer->page
+                                        ];
+                                        $startKirimStamp = microtime(true);
+                                        Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
+                                        Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
+                                        $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                        $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
+                                        Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                        Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
 
-                                            DB::beginTransaction();
-                                            if(!isset($keyStamp['errorCode'])){
+                                        DB::beginTransaction();
+                                        if(!isset($keyStamp['errorCode'])){
+                                            $base64->status = 3;
+                                            $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                            $sign->status_id = 9;
+                                            $sign->save();
+                                            $base64->save();
+                                            DB::commit();
+                                            $selesai_peruri = date("d-m-Y h:i:s");
+                                            $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
+                                            $time_elapsed_secs = microtime(true) - $start;
+                                            Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                            Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                            return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
+                                        } else if($keyStamp['errorCode'] == 0) {
+                                            $selesai_peruri = date("d-m-Y h:i:s");
+                                            $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
+                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
+                                            $cekUnusedMeterai->status = 1;
+                                            $cekUnusedMeterai->dokumen_id = $sign->id;
+                                            $cekUnusedMeterai->save();
+
+                                            if($cekUnusedMeterai->status == 1){
+                                                $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $sign->user->company_id)->first();
+                                                if(!$this->companyService->historyPemakaian($quotaMeterai, $sign->users_id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
+                                                    DB::rollBack();
+                                                    $time_elapsed_secs = microtime(true) - $start;
+                                                    Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                                    Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                                    throw new \Exception('Error Create History Pemakaian', 500);
+                                                }
+
+                                                if(!$this->companyService->quotaKurang($quotaMeterai, $sign->user->company_id)){
+                                                    DB::rollBack();
+                                                    $time_elapsed_secs = microtime(true) - $start;
+                                                    Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                                    Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                                    throw new \Exception('Error Create Pengurangan Quota', 500);
+                                                }
+                                            }
+
+                                            $base64->status = 2;
+                                            $base64->desc = '';
+                                            $base64->save();
+
+                                            $sign->status_id = 8;
+                                            $sign->name = $fileNameFinal;
+                                            $sign->save();
+
+                                            DB::commit();
+                                            $time_elapsed_secs = microtime(true) - $start;
+                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
+                                            return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
+
+                                        } else {
+                                            if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
+                                                $base64->status = 3;
+                                                $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                $cekUnusedMeterai->status = 3;
+                                                $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                $sign->status_id = 9;
+                                                $sign->save();
+                                                $base64->save();
+                                                $cekUnusedMeterai->save();
+                                                DB::commit();
+                                                $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
+                                                $time_elapsed_secs = microtime(true) - $start;
+                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - dataId : ".$sign->id." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
+                                                Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - dataId : ".$sign->id." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
+                                                return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
+                                            } else {
                                                 $base64->status = 3;
                                                 $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
                                                 $sign->status_id = 9;
                                                 $sign->save();
                                                 $base64->save();
                                                 DB::commit();
-                                                $selesai_peruri = date("d-m-Y h:i:s");
                                                 $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                                 $time_elapsed_secs = microtime(true) - $start;
-                                                Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                                Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Gagal stamp ke peruri - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                            } else if($keyStamp['errorCode'] == 0) {
-                                                $selesai_peruri = date("d-m-Y h:i:s");
-                                                $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
-                                                Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
-                                                $cekUnusedMeterai->status = 1;
-                                                $cekUnusedMeterai->dokumen_id = $sign->id;
-                                                $cekUnusedMeterai->save();
-
-                                                if($cekUnusedMeterai->status == 1){
-                                                    $Basepricing = PricingModel::where('name_id', 6)->where('company_id', $sign->user->company_id)->first();
-
-                                                    if(!$this->companyService->historyPemakaian($quotaMeterai, $sign->users_id, isset($Basepricing->price) ? $Basepricing->price : '10800')){
-                                                        DB::rollBack();
-                                                        $time_elapsed_secs = microtime(true) - $start;
-                                                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                                        Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create History Pemakaian - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                                        throw new \Exception('Error Create History Pemakaian', 500);
-                                                    }
-
-                                                    if(!$this->companyService->quotaKurang($quotaMeterai, $sign->user->company_id)){
-                                                        DB::rollBack();
-                                                        $time_elapsed_secs = microtime(true) - $start;
-                                                        Log::channel('api_log')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                                        Log::channel('sentry')->error("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Error Create Pengurangan Quota - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                                        throw new \Exception('Error Create Pengurangan Quota', 500);
-                                                    }
-                                                }
-
-                                                $base64->status = 2;
-                                                $base64->desc = '';
-                                                $base64->save();
-
-                                                $sign->status_id = 8;
-                                                $sign->name = $fileNameFinal;
-                                                $sign->save();
-
-                                                DB::commit();
-                                                $time_elapsed_secs = microtime(true) - $start;
-                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                                Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Success - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs);
-                                                break;
-                                            } else {
-                                                if($keyStamp['errorCode'] == 97 || $keyStamp['errorCode'] == 92){
-                                                    $base64->status = 3;
-                                                    $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                                    $cekUnusedMeterai->status = 3;
-                                                    $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                                    $sign->status_id = 9;
-                                                    $sign->save();
-                                                    $base64->save();
-                                                    $cekUnusedMeterai->save();
-                                                    DB::commit();
-                                                    $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                                    $time_elapsed_secs = microtime(true) - $start;
-                                                    Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
-                                                    Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
-                                                } else {
-                                                    $base64->status = 3;
-                                                    $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
-                                                    $sign->status_id = 9;
-                                                    $sign->save();
-                                                    $base64->save();
-                                                    DB::commit();
-                                                    $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
-                                                    $time_elapsed_secs = microtime(true) - $start;
-                                                    Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
-                                                    Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Retry - dataId : ".$sign->id." Diulang sebanyak ".$i." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
-                                                    break;
-                                                }
+                                                Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Error : Retry - dataId : ".$sign->id." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
+                                                Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Error : Retry - dataId : ".$sign->id." desc ".json_encode($keyStamp)." Response time: ".$time_elapsed_secs);
+                                                return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
                                             }
-                                        } else {
-                                            $base64->status = 3;
-                                            $base64->desc = 'Generated Meterai not Found';
-                                            $sign->status_id = 9;
-                                            $sign->save();
-                                            $base64->save();
-                                            DB::commit();
-                                            $time_elapsed_secs = microtime(true) - $start;
-                                            Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
-                                            Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
-                                            $selesai = date("d-m-Y h:i:s");
-                                            break;
                                         }
+                                    } else {
+                                        $base64->status = 3;
+                                        $base64->desc = 'Generated Meterai not Found';
+                                        $sign->status_id = 9;
+                                        $sign->save();
+                                        $base64->save();
+                                        DB::commit();
+                                        $time_elapsed_secs = microtime(true) - $start;
+                                        Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
+                                        Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
+                                        $selesai = date("d-m-Y h:i:s");
+                                        return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
                                     }
-
-                                    return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
                                 } else {
                                     DB::rollBack();
                                     $time_elapsed_secs = microtime(true) - $startKirim;
