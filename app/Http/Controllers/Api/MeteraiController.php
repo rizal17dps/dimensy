@@ -858,6 +858,7 @@ class MeteraiController extends Controller
                                 $token = '';
 
                                 $auth = AuthModel::where('id', 2)->whereDate('expired', '>', date("Y-m-d H:i:s"))->first();
+                                dd(date("Y-m-d H:i:s"));
                                 if($auth){
                                     $token = $auth->token;
                                     $sukses = true;
