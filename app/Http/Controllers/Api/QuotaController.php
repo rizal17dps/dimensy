@@ -359,6 +359,11 @@ class QuotaController extends Controller
         DB::beginTransaction();
         try{
             $data = Meterai::where("status", 3)->get();
+            if($request->input('start') && $request->input('end')){
+                $dok = Meterai::where("status", 3)->whereRaw("updated_at >= '".$request->input('start')." 00:00:00' and updated_at <= '".$request->input('end')." 00:00:00'")->orderBy('dokumen.updated_at', 'desc')->get();
+            } else {
+                $dok = Meterai::where("status", 3)->orderBy('updated_at', 'desc')->get();
+            }
 
             return response(['code' => 0,'message' =>'Success', 'data' => $data]);
         } catch(\Exception $e) {
