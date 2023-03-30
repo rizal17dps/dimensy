@@ -969,6 +969,7 @@ class MeteraiController extends Controller
                                             Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : ".json_encode($keyStamp)." - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
                                             $cekUnusedMeterai->status = 1;
                                             $cekUnusedMeterai->dokumen_id = $sign->id;
+                                            $cekUnusedMeterai->description = json_encode($keyStamp);
                                             $cekUnusedMeterai->save();
 
                                             if($cekUnusedMeterai->status == 1){
@@ -1009,7 +1010,7 @@ class MeteraiController extends Controller
                                                 $base64->status = 3;
                                                 $base64->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
                                                 $cekUnusedMeterai->status = 3;
-                                                $cekUnusedMeterai->desc = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
+                                                $cekUnusedMeterai->description = json_encode($keyStamp). " | ".$cekUnusedMeterai->serial_number;
                                                 $sign->status_id = 9;
                                                 $sign->save();
                                                 $base64->save();
