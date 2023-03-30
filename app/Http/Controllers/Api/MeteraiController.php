@@ -853,6 +853,21 @@ class MeteraiController extends Controller
                                 $sukses = false;
                                 $token = '';
 
+                                $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
+                                if(!$cekUnusedMeterai){
+                                    $base64->status = 3;
+                                    $base64->desc = 'Generated Meterai not Found';
+                                    $sign->status_id = 9;
+                                    $sign->save();
+                                    $base64->save();
+                                    DB::commit();
+                                    $time_elapsed_secs = microtime(true) - $start;
+                                    Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
+                                    Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
+                                    $selesai = date("d-m-Y h:i:s");
+                                    return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Generated Meterai not Found']);
+                                }
+
                                 $ex = explode("|", $cekUnusedMeterai->serial_number);
                                 $SN = $ex[0];
                                 $idDist = $ex[1] ?? "";
@@ -916,7 +931,7 @@ class MeteraiController extends Controller
                                             "location"=> $request->input('content.location'),
                                             "profileName"=> "emeteraicertificateSigner",
                                             "reason"=> $docType->nama ?? 'Dokumen Lain-lain',
-                                            "refToken"=> $cekUnusedMeterai->serial_number,
+                                            "refToken"=> $SN,
                                             "spesimenPath"=> '/sharefolder/'.$cekUnusedMeterai->path,
                                             "src"=> '/sharefolder/'.$sign->user->company_id .'/dok/' . $sign->users_id . '/' . $sign->name,
                                             "visLLX"=> $signer->lower_left_x,
@@ -1030,7 +1045,7 @@ class MeteraiController extends Controller
                                         Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
                                         Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : ".url()->current()." Email: ".$email." Status : Error - Generated Meterai not Found - dataId : ".$sign->id." Response time: ".$time_elapsed_secs);
                                         $selesai = date("d-m-Y h:i:s");
-                                        return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Success']);
+                                        return response(['code' => 0 ,'data' => ResponseFormatter::getDocument($sign->users_id, $sign->id), 'message' =>'Generated Meterai not Found']);
                                     }
                                 } else {
                                     DB::rollBack();
