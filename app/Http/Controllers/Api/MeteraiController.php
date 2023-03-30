@@ -944,9 +944,9 @@ class MeteraiController extends Controller
                                         Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
                                         Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
                                         if($idDist != ""){
-                                            $keyStamp = $meteraiService->callAPIVas('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                            $keyStamp = $this->meterai->callAPIVas('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                         } else {
-                                            $keyStamp = $meteraiService->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                            $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
                                         }
                                         $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                         Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
