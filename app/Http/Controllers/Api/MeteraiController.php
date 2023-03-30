@@ -871,7 +871,7 @@ class MeteraiController extends Controller
                                 $ex = explode("|", $cekUnusedMeterai->serial_number);
                                 $SN = $ex[0];
                                 $idDist = $ex[1] ?? "";
-                                dd($idDist != "");
+
                                 if($idDist != ""){
                                     $auth = AuthModel::where('expired', '>', date("Y-m-d H:i:s"))->where('id', $idDist)->first();
                                 } else {
@@ -884,6 +884,7 @@ class MeteraiController extends Controller
                                 } else {
                                     if($idDist != ""){
                                         $cek = $dimensyService->callAPI('api/getJwtVas');
+                                        dd('getJwtVas '. $cek['data']);
                                         if ($cek['code'] == "0") {
 
                                             $auth = AuthModel::find(3);
@@ -902,6 +903,7 @@ class MeteraiController extends Controller
                                         }
                                     } else {
                                         $cek = $dimensyService->callAPI('api/getJwt');
+                                        dd('getJwt '. $cek['data']);
                                         if ($cek['code'] == "0") {
 
                                             $auth = AuthModel::find(2);
@@ -920,7 +922,7 @@ class MeteraiController extends Controller
                                         }
                                     }
                                 }
-
+                                dd($idDist != "");
                                 if($sukses) {
                                     $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
                                     if($cekUnusedMeterai){
