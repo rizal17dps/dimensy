@@ -118,6 +118,21 @@ class MeteraiService
         }
     }
 
+    public function callAPIVas(string $uri = null, array $params = [], $type, $method, $token = "")
+    {
+        try{
+                $x = $this->getResponse(
+                    $uri,$params,$type,$method,$auth->token
+                );
+                $x['token'] = $auth->token;
+
+            return $x;
+        } catch (\Exception $e) {
+            $this->logError(\Request::getClientIp(), $uri, json_encode($params), $e->getMessage() , 'GAGAL');
+            return $e->getMessage();
+        }
+    }
+
     public function logError($ip, $url, $param, $desc, $stat){
         try{
             if(isset(auth()->user()->id)){

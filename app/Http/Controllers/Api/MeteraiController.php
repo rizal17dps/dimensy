@@ -884,7 +884,6 @@ class MeteraiController extends Controller
                                 } else {
                                     if($idDist != ""){
                                         $cek = $dimensyService->callAPI('api/getJwtVas');
-                                        dd('getJwtVas '. $cek['data']);
                                         if ($cek['code'] == "0") {
 
                                             $auth = AuthModel::find(3);
@@ -903,7 +902,6 @@ class MeteraiController extends Controller
                                         }
                                     } else {
                                         $cek = $dimensyService->callAPI('api/getJwt');
-                                        dd('getJwt '. $cek['data']);
                                         if ($cek['code'] == "0") {
 
                                             $auth = AuthModel::find(2);
@@ -922,7 +920,6 @@ class MeteraiController extends Controller
                                         }
                                     }
                                 }
-                                dd($idDist != "");
                                 if($sukses) {
                                     $cekUnusedMeterai = Meterai::where('status', 0)->whereNull('dokumen_id')->where('company_id', $sign->user->company_id)->first();
                                     if($cekUnusedMeterai){
@@ -946,7 +943,11 @@ class MeteraiController extends Controller
                                         $startKirimStamp = microtime(true);
                                         Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
                                         Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri, Email: ".$email." Status : [START] Connect to peruri docker - dataId : ".$sign->id.", Start time: ".$startKirimStamp);
-                                        $keyStamp = $this->meterai->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                        if($idDist != ""){
+                                            $keyStamp = $meteraiService->callAPIVas('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                        } else {
+                                            $keyStamp = $meteraiService->callAPI('adapter/pdfsigning/rest/docSigningZ', $params, 'keyStamp', 'POST', $token);
+                                        }
                                         $time_elapsed_secs_stamp = microtime(true) - $startKirimStamp;
                                         Log::channel('api_log')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
                                         Log::channel('sentry')->info("IP : ".ResponseFormatter::get_client_ip()." EndPoint : Peruri Email: ".$email." Status : [END] Connect to peruri docker - dataId : ".$sign->id."  Response time: ".$time_elapsed_secs_stamp);
