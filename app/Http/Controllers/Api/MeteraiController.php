@@ -871,7 +871,7 @@ class MeteraiController extends Controller
                                 $ex = explode("|", $cekUnusedMeterai->serial_number);
                                 $SN = $ex[0];
                                 $idDist = $ex[1] ?? "";
-                                dd($idDist);
+                                dd($idDist != "");
                                 if($idDist != ""){
                                     $auth = AuthModel::where('expired', '>', date("Y-m-d H:i:s"))->where('id', $idDist)->first();
                                 } else {
