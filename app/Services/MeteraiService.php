@@ -122,9 +122,8 @@ class MeteraiService
     {
         try{
                 $x = $this->getResponse(
-                    $uri,$params,$type,$method,$auth->token
+                    $uri,$params,$type,$method,$token
                 );
-                $x['token'] = $auth->token;
 
             return $x;
         } catch (\Exception $e) {
