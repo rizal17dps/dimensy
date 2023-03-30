@@ -853,29 +853,53 @@ class MeteraiController extends Controller
                                 $sukses = false;
                                 $token = '';
 
-                                $auth = AuthModel::where('id', 2)->where('expired', '>', date("Y-m-d H:i:s"))->first();
+                                $ex = explode("|", $cekUnusedMeterai->serial_number);
+                                $SN = $ex[0];
+                                $idDist = $ex[1] ?? "";
+                                if($idDist != ""){
+                                    $auth = AuthModel::where('expired', '>', date("Y-m-d H:i:s"))->where('id', $idDist)->first();
+                                } else {
+                                    $auth = AuthModel::where('expired', '>', date("Y-m-d H:i:s"))->where('id', 2)->first();
+                                }
+
                                 if($auth){
                                     $token = $auth->token;
                                     $sukses = true;
                                 } else {
-                                    $startKirimJwt = microtime(true);
+                                    if($idDist != ""){
+                                        $cek = $dimensyService->callAPI('api/getJwtVas');
+                                        if ($cek['code'] == "0") {
 
-                                    $cek = $dimensyService->callAPI('api/getJwt');
-                                    if ($cek['code'] == "0") {
-                                        $selesai_jwt = date("d-m-Y h:i:s");
-                                        $time_elapsed_secs_jwt = microtime(true) - $startKirimJwt;
-                                        Log::channel('api_log')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
-                                        Log::channel('sentry')->info("get Jwt, mulai ".$startKirimJwt." selesai ".microtime(true). ", durasi ".$time_elapsed_secs_jwt);
-                                        AuthModel::truncate();
-                                        $auth = new AuthModel();
-                                        $auth->id = 2;
-                                        $auth->token = $cek['data'];
-                                        $auth->expired = $cek["expiredDate"];
-                                        $auth->created = date("Y-m-d H:i:s");
-                                        $auth->save();
+                                            $auth = AuthModel::find(3);
+                                            if(!$auth){
+                                                $auth = new AuthModel();
+                                            }
+                                            $auth->id = 3;
+                                            $auth->token = $cek['data'];
+                                            $auth->expired = $cek["expiredDate"];
+                                            $auth->created = date("Y-m-d H:i:s");
+                                            $auth->save();
 
-                                        $token = $cek['data'];
-                                        $sukses = true;
+                                            $token = $cek['data'];
+                                            $sukses = true;
+                                        }
+                                    } else {
+                                        $cek = $dimensyService->callAPI('api/getJwt');
+                                        if ($cek['code'] == "0") {
+
+                                            $auth = AuthModel::find(2);
+                                            if(!$auth){
+                                                $auth = new AuthModel();
+                                            }
+                                            $auth->id = 2;
+                                            $auth->token = $cek['data'];
+                                            $auth->expired = $cek["expiredDate"];
+                                            $auth->created = date("Y-m-d H:i:s");
+                                            $auth->save();
+
+                                            $token = $cek['data'];
+                                            $sukses = true;
+                                        }
                                     }
                                 }
 
