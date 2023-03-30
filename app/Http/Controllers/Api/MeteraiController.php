@@ -874,6 +874,7 @@ class MeteraiController extends Controller
                                             if(!$auth){
                                                 $auth = new AuthModel();
                                             }
+
                                             $auth->id = 3;
                                             $auth->token = $cek['data'];
                                             $auth->expired = $cek["expiredDate"];
@@ -891,6 +892,7 @@ class MeteraiController extends Controller
                                             if(!$auth){
                                                 $auth = new AuthModel();
                                             }
+
                                             $auth->id = 2;
                                             $auth->token = $cek['data'];
                                             $auth->expired = $cek["expiredDate"];
