@@ -168,7 +168,7 @@ class SendController extends Controller
                     'dataId' => 'required'
                 ]);
 
-                $dok = Sign::find($request->input('dataId'));
+                $dok = Sign::where("id", $request->input('dataId'))->where("users_id", $cekEmail->id)->first();
 
                 if($dok){
                     $data['base64Document'] = base64_encode(Storage::disk('minio')->get($dok->user->company_id .'/dok/' . $dok->users_id . '/' . $dok->name));
